@@ -1,0 +1,152 @@
+<html>
+	<head>
+		<title>Arcade Manager Menu</title>
+		<link rel="stylesheet" type="text/css" href="asset://ui/hud.css"></link>
+		<script src="asset://ui/hud.js"></script>
+		<style>
+			.menu {
+				position: absolute;
+				top: 50%;
+				left:  50%;
+				-webkit-transform:  translate(-50%, -50%);
+				border-radius: 20px;
+				background-color: rgba(0, 0, 0, 0.95);
+				padding: 20px;
+			}
+
+			.loading {
+				font-family:  Arial;
+				font-size:  20px;
+				font-weight: 600;
+			}
+
+			.ready .loading {
+				display:  none;
+			}
+
+			.whenReady {
+				display:  none;
+				font-family:  Arial;
+				font-size:  20px;
+			}
+
+			.ready .whenReady {
+				display:  block;
+			}
+
+			.objectCount {
+				display:  inline;
+			}
+		</style>
+
+		<style>
+			.loadingIndicator
+			{
+				width: 24px;
+				height: 24px;
+				border-width: 8px;
+				border-radius: 50%;
+				border-style: dashed;
+				-webkit-animation: spin 4s infinite linear;
+				border-color:  #fff;
+			}
+
+			@-webkit-keyframes spin
+			{
+				0%  {-webkit-transform: rotate(0deg);}
+				100% {-webkit-transform: rotate(360deg);}   
+			}
+
+			.animatedEllipsis
+			{
+				display: inline;
+			}
+
+			.animatedEllipsis div
+			{
+				display: inline;
+				visibility: hidden;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="menu">
+			<div class="loading">
+				<center>
+					<div>Loading object list...</div>
+					<div class="loadingIndicator aaThemeColorOneBorderColor" style="margin: 20px;"></div>
+				</center>
+			</div>
+			<div class="whenReady">
+				<center>
+					<div style="padding-bottom: 20px;"><div class="objectCount">#</div> Objects in World</div>
+					<select id="dropdown" style="font-size: 20px; max-width: 700px;"><option value="" selected>-- select an object --</option></select>
+				</center>
+			</div>
+		</div>
+
+		<!-- a href="javascript:document.location.reload();">yadda</a -->
+		<div id="backgroundSlate"></div>
+		<script>
+			var sel = document.querySelector('#dropdown');
+			var numUsed = 0;
+			var batchNumber = -1;
+			function fetchNextBatch() {
+				batchNumber++;
+
+				// sync fetch 10 nearest items
+				var batchSize = (batchNumber) ? 100 : 1;
+				var llist = [];
+				var responseFailed = false;
+				var response = (batchNumber) ? aaapi.cmdEx("getNextNearestObjectToPlayerLook") : aaapi.cmdEx("getNearestObjectToPlayerLook");
+				while( response.success && llist.length < batchSize) {
+					var entry = response.entry;
+					if( entry.itemId == entry.modelId ) {
+						llist.push(entry);
+					}
+					else {
+						llist.push(entry);
+					}
+
+					numUsed++;
+
+					if( llist.length < batchSize ) {
+						response = aaapi.cmdEx("getNextNearestObjectToPlayerLook");
+					}
+				}
+
+				if( response && !response.success ) {
+					responseFailed = true;
+				}
+
+				var opt;
+				for( var i = 0; i < llist.length; i++ ) {
+					opt = document.createElement('option');
+					opt.text = llist[i].title;
+					opt.value = llist[i].id;
+					opt.entry = llist[i];
+					sel.appendChild(opt);
+				}
+
+				if( responseFailed ) {
+					finishedFetching();
+				}
+				else {
+					setTimeout(fetchNextBatch, 100);
+				}
+			}
+
+			function finishedFetching() {
+				var menu = document.querySelector('.menu');
+				menu.querySelector('.objectCount').innerHTML = numUsed;
+				menu.classList.add('ready');
+				sel.addEventListener('change', function(e) {
+					var opt = sel.querySelector('option[value="' + sel.value + '"]');
+					window.location = 'asset://ui/buildModeContext.html?entity=' + opt.entry.entity;
+				});
+			}
+
+			fetchNextBatch();
+		</script>
+	</body>
+</html>

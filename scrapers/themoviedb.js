@@ -218,11 +218,12 @@ arcadeHud.addScraper({
 
 		// marquee
 		//var marquee = doc.querySelector(".original_content div .poster");
-		var marquee = doc.querySelector(".image_content.backdrop");
+		//var marquee = doc.querySelector(".image_content.backdrop");
+		var marquee = doc.querySelector("img.poster");
 		
 		if(!!marquee)
 		{
-			marquee = marquee.querySelector("img");
+			//marquee = marquee.querySelector("img");
 			marquee = marquee.getAttribute("src");//data-src");
 			marquee = marquee.substring(marquee.lastIndexOf("/") + 1);
 		}

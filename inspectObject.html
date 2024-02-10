@@ -6,10 +6,33 @@
 			var tga = new TGA();
 		</script>
 		<script src="asset://ui/hud.js"></script>
+		<script>
+			var cmdListener = {
+				//"displayMode": "browse",
+				"onCenterChanged": function(modelId, inspectCenterOffset) {
+					//console.log("Inspector detector: " + modelId + " - " + inspectCenterOffset);
+					carryData = {origin: inspectCenterOffset};
+					localStorage.setItem('carry' + modelId, JSON.stringify(carryData));
+					//localStorage.setItem('carry' + modelId, JSON.stringify({origin: '0 0 0'}));
+				}
+			};
+
+			var modelId = aaapi.cmdEx('getConVarValue', 'inspect_model_id');
+			var carryData = localStorage.getItem('carry' + modelId);
+			if( carryData ) {
+				carryData = JSON.parse(carryData);
+			}
+
+			if( carryData ) {
+				console.log('inspect detected: ' + modelId + ' - ' + carryData.origin);
+				aaapi.cmd('consoleCommand', 'apply_carry_cata \"' + carryData.origin + '\";');
+			}
+			//localStorage.removeItem('carry' + modelId);
+		</script>
 	</head>
 	<body>
-		<h1>HELLO WORLD X</h1>
-		<input type="button" onclick="doIt();" value="yadda" />
+		<!--h1>HELLO WORLD X</h1>
+		<input type="button" onclick="doIt();" value="yadda" /-->
 		<script>
 			function doIt() {
 				console.log('kill it');
@@ -18,6 +41,199 @@
 				//}, 1000);
 				aaapi.cmd('deactivateInputMode');
 			}
+
+///*
+// Variables to store the start position of the drag
+var additiveRotStartX = 0;
+var additiveRotStartY = 0;
+var additiveTallStartX = 0;
+var additiveTallStartY = 0;
+var additiveOffsetStartX = 0;
+var additiveOffsetStartY = 0;
+var startX = 0;
+var startY = 0;
+
+// Flag to check if the drag is active
+var isDragging = false;
+var clickMode = 0
+
+//aaapi.cmd('consoleCommand', 'inspect_yaw 0; inspect_pitch 0; inspect_horiz 0; inspect_vert 0; inspect_tall 0;');
+
+var additive = true;
+
+// Function to handle the start of a drag
+function handleMouseDown(event) {
+	if( clickMode > 0 ) {
+		if (event.ctrlKey) {
+			if( modelId ) {
+				console.log('Resetting carry data for ' + modelId);
+				localStorage.removeItem('carry' + modelId);
+			}
+			aaapi.cmd('consoleCommand', 'apply_carry_cata "0 0 0";');
+		}
+		return;
+	}
+	clickMode = event.which;
+//console.log(clickMode);
+    // Set the start position
+    startX = event.clientX;
+    startY = event.clientY;
+
+    isDragging = true;
+
+    var additiveXVal = 0;
+    var additiveYVal = 0;
+    if(additive) {
+    	if( clickMode == 1 ) {
+    		additiveXVal = additiveRotStartX;
+    		additiveYVal = additiveRotStartY;
+    	}
+    	else if( clickMode == 2 ) {
+    		additiveXVal = additiveTallStartX;
+    		additiveYVal = additiveTallStartY;
+    	}
+    	else if( clickMode == 3 ) {
+    		additiveXVal = additiveOffsetStartX;
+    		additiveYVal = additiveOffsetStartY;
+    	}
+    }
+
+    //aaapi.cmd('consoleCommand', 'inspect_yaw 0; inspect_pitch 0; inspect_horiz 0; inspect_vert 0;');
+    if( clickMode == 1 ) {
+    	//aaapi.cmd('consoleCommand', 'inspect_yaw 0; inspect_pitch 0;');
+		//aaapi.cmd('consoleCommand', 'inspect_yaw 0; inspect_pitch 0; inspect_horiz 0; inspect_vert 0;');
+
+        var horiz = (additiveXVal) / windowWidth;
+        var vert = (additiveYVal) / windowHeight;
+    	aaapi.cmd('consoleCommand', 'inspect_yaw ' + horiz + '; inspect_pitch ' + vert + '; inspect_horiz 0; inspect_vert 0; inspect_tall 0;');
+    }
+    else if( clickMode == 3 ) {
+    	aaapi.cmd('consoleCommand', 'inspect_horiz 0; inspect_vert 0;');
+    }
+}
+
+var windowWidth = window.innerWidth;
+var windowHeight = window.innerHeight;
+
+// Function to handle the dragging
+function handleMouseMove(event) {
+    if (isDragging) {
+        // Calculate the distance dragged
+        var draggedX = event.clientX - startX;
+        var draggedY = event.clientY - startY;
+
+        //console.log('Dragged:', draggedX, draggedY);
+        var additiveXVal = 0;
+        var additiveYVal = 0;
+	    if(additive) {
+	    	if( clickMode == 1 ) {
+	    		additiveXVal = additiveRotStartX;
+	    		additiveYVal = additiveRotStartY;
+	    	}
+	    	else if( clickMode == 2 ) {
+	    		additiveXVal = additiveTallStartX;
+	    		additiveYVal = additiveTallStartY;
+	    	}
+	    	else if( clickMode == 3 ) {
+	    		additiveXVal = additiveOffsetStartX;
+	    		additiveYVal = additiveOffsetStartY;
+	    	}
+	    }
+
+        var horiz = (draggedX + additiveXVal) / windowWidth;
+        var vert = (draggedY + additiveYVal) / windowHeight;
+
+	    if( clickMode == 1 ) {
+	       	aaapi.cmd('consoleCommand', 'inspect_yaw ' + horiz + '; inspect_pitch ' + vert + ';');
+	    }
+	    else if( clickMode === 2 ) {
+	       	aaapi.cmd('consoleCommand', 'inspect_horiz ' + horiz + '; inspect_tall ' + -vert + ';');
+	    }
+	    else if( clickMode === 3 ) {
+	       	aaapi.cmd('consoleCommand', 'inspect_horiz ' + horiz + '; inspect_vert ' + -vert + ';');
+	    }
+	}
+}
+
+// Function to handle the end of a drag
+function handleMouseUp(event) {
+    if (isDragging) {
+        // Calculate the total distance dragged
+        var totalDraggedX = event.clientX - startX;
+        var totalDraggedY = event.clientY - startY;
+
+        var horiz = totalDraggedX / windowWidth;
+        var vert = totalDraggedY / windowHeight;
+
+        var additiveXVal = 0;
+        var additiveYVal = 0;
+	    if(additive) {
+	    	if( clickMode == 1 ) {
+	    		additiveXVal = additiveRotStartX;
+	    		additiveYVal = additiveRotStartY;
+	    	}
+	    	else if( clickMode == 2 ) {
+	    		additiveXVal = additiveTallStartX;
+	    		additiveYVal = additiveTallStartY;
+	    	}
+	    	else if( clickMode == 3 ) {
+	    		additiveXVal = additiveOffsetStartX;
+	    		additiveYVal = additiveOffsetStartY;
+	    	}
+	    }
+
+        var horiz = (totalDraggedX + additiveXVal) / windowWidth;
+        var vert = (totalDraggedY + additiveYVal) / windowHeight;
+    
+	    if( clickMode == 1 ) {
+		    additiveRotStartX += totalDraggedX;
+		    additiveRotStartY += totalDraggedY;
+		}
+		else if (clickMode == 2 ) {
+		    additiveTallStartX += totalDraggedX;
+		    additiveTallStartY += totalDraggedY;
+		}
+		else if (clickMode == 3 ) {
+		    additiveOffsetStartX += totalDraggedX;
+		    additiveOffsetStartY += totalDraggedY;
+		}
+
+        isDragging = false;
+        //console.log('Total Drag: ' + horiz + ' : ' + vert);
+
+       	if( !additive ) {
+			aaapi.cmd('consoleCommand', 'inspect_yaw 0; inspect_pitch 0; inspect_horiz 0; inspect_vert 0; inspect_tall 0;');
+       	}
+       	else {
+			//additiveRotStartX = 0;
+			//additiveRotStartY = 0;
+			additiveTallStartX = 0;
+			additiveTallStartY = 0;
+			additiveOffsetStartX = 0;
+			additiveOffsetStartY = 0;
+
+			aaapi.cmd('consoleCommand', 'inspect_horiz 0; inspect_vert 0; inspect_tall 0;');	// TODO: as long as horiz, vert, and tall are treated like "slide" axis that use DT, this is needed here. Fix that.
+
+	        //var horiz = (additiveXVal) / windowWidth;
+	        //var vert = (additiveYVal) / windowHeight;
+
+        	//var horiz = (totalDraggedX + additiveXVal) / windowWidth;
+        	//var vert = (totalDraggedX + additiveYVal) / windowHeight;
+
+	        //console.log(horiz + ' , ' + vert);
+	    	//aaapi.cmd('consoleCommand', 'inspect_yaw ' + horiz + '; inspect_pitch ' + vert + '; inspect_horiz 0; inspect_vert 0; inspect_tall 0;');
+       	}
+    }
+	clickMode = 0;
+}
+
+// Adding event listeners
+document.addEventListener('mousedown', handleMouseDown);
+document.addEventListener('mousemove', handleMouseMove);
+document.addEventListener('mouseup', handleMouseUp);
+//*/
+
+
 		</script>
 	</body>
 </html>

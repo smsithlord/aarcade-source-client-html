@@ -131,12 +131,36 @@
 			}
 
 			.existingObject {
-				border:  4px solid #cc0000 !important;
+				/*border:  4px solid #cc0000 !important;*/
+				border-width:  4px;
+				border-style:  solid;
+			}
+
+			.floatingButton {
+				position: absolute;
+				left: 50%;
+				bottom: 60px;
+				-webkit-transform: translateX(-50%);
+				border-radius: 20px;
+				font-family: Arial;
+				font-size: 20px;
+				padding: 20px; 
+				background-color:  rgba(0, 0, 0, 0.9);
+				cursor:  pointer;
+			}
+
+			.floatingButton:hover {
+				background-color:  rgba(0, 0, 0, 0.95);
 			}
 		</style>
 	</head>
 	<body>
-		<a href="javascript:document.location.reload();">yadda</a>
+		<select id="dropdown" style="position: absolute; top: 10px; right: 10px; font-size: 20px; display: none;"></select>
+		<!--a href="javascript:document.location.reload();">yadda</a-->
+		<!--a href="arcadeManager.html">Arcade Manager</a-->
+		<div class="floatingButton" onclick="window.location='arcadeManager.html';">
+			View Full Object List
+		</div>
 		<div id="backgroundSlate"></div>
 		<div id="listAreaSlate"></div>
 		<div id="listArea" style="position: absolute; left: 50%; top: 50%; -webkit-transform: translate(-50%, -50%); text-align: center;">
@@ -192,88 +216,88 @@
 				clearPreviewEntry();
 			});
 
-			var positions = [
-				{
-					left: '962px',
-					top: '245px',
-					rot: '0deg'
-				},
-				{
-					left: '1074px',
-					top: '269px',
-					rot: '22.5deg'
-				},
-				{
-					left: '1169px',
-					top: '332px',
-					rot: '45deg'
-				},
-				{
-					left: '1229px',
-					top: '425px',
-					rot: '67.5deg'
-				},
-				{
-					left: '1252px',
-					top: '541px',
-					rot: '90deg'
-				},
-				{
-					left: '1229px',
-					top: '654px',
-					rot: '292.5deg'
-				},
-				{
-					left: '1169px',
-					top: '747px',
-					rot: '315deg'
-				},
-				{
-					left: '1075px',
-					top: '810px',
-					rot: '337.5deg'
-				},
-				{
-					left: '962px',
-					top: '834px',
-					rot: '0deg'
-				},
-				{
-					left: '845px',
-					top: '810px',
-					rot: '22.5deg'
-				},
-				{
-					left: '750px',
-					top: '747px',
-					rot: '45deg'
-				},
-				{
-					left: '690px',
-					top: '645px',
-					rot: '67.5deg'
-				},
-				{
-					left: '667px',
-					top: '541px',
-					rot: '-90deg'
-				},
-				{
-					left: '680px',
-					top: '425px',
-					rot: '-67.5deg'
-				},
-				{
-					left: '750px',
-					top: '332px',
-					rot: '-45deg'
-				},
-				{
-					left: '845px',
-					top: '269px',
-					rot: '-22.5deg'
-				}
-			];
+	var positions = [
+		{
+			left: '962px',
+			top: '245px',
+			rot: '0deg'
+		},
+		{
+			left: '1074px',
+			top: '269px',
+			rot: '22.5deg'
+		},
+		{
+			left: '1169px',
+			top: '332px',
+			rot: '45deg'
+		},
+		{
+			left: '1229px',
+			top: '425px',
+			rot: '67.5deg'
+		},
+		{
+			left: '1252px',
+			top: '541px',
+			rot: '90deg'
+		},
+		{
+			left: '1229px',
+			top: '654px',
+			rot: '292.5deg'
+		},
+		{
+			left: '1169px',
+			top: '747px',
+			rot: '315deg'
+		},
+		{
+			left: '1075px',
+			top: '810px',
+			rot: '337.5deg'
+		},
+		{
+			left: '962px',
+			top: '834px',
+			rot: '0deg'
+		},
+		{
+			left: '845px',
+			top: '810px',
+			rot: '22.5deg'
+		},
+		{
+			left: '750px',
+			top: '747px',
+			rot: '45deg'
+		},
+		{
+			left: '690px',
+			top: '645px',
+			rot: '67.5deg'
+		},
+		{
+			left: '667px',
+			top: '541px',
+			rot: '-90deg'
+		},
+		{
+			left: '680px',
+			top: '425px',
+			rot: '-67.5deg'
+		},
+		{
+			left: '750px',
+			top: '332px',
+			rot: '-45deg'
+		},
+		{
+			left: '845px',
+			top: '269px',
+			rot: '-22.5deg'
+		}
+	];
 
 			var windowHeight = window.innerHeight;
 			var windowWidth = window.innerWidth;
@@ -290,8 +314,48 @@
 
 			var currentFetchIndex = 0;
 			var previousFetchedIndexes = {};
+			var endOfNearbyReached = false;	// because nearby list is ONLY generated once - as the default, there is no need to handle switching BACK to it after having switched to a different list.
+			var syncFetchingNearby = false;
 			rightArrow.addEventListener('click', function() {
-				if( lastSyncFetchedIndex >= list.length - 1 ) {
+				if( syncFetchingNearby ) {
+					return;
+				}
+
+				if( !listSelect.value ) {
+					syncFetchingNearby = true;
+				}
+
+				if( !listSelect.value && lastSyncFetchedIndex >= list.length - 1 && !endOfNearbyReached ) {
+					//console.log('FETCHING MORE NEARBY ITEMS...');
+					// sync fetch 10 nearest items
+					var response = aaapi.cmdEx("getNextNearestObjectToPlayerLook");
+					var usedInBatch = 0;
+					while( response.success && usedInBatch < maxTiles) {
+						usedInBatch++;
+						var entry = response.entry;
+						if( entry.itemId == entry.modelId ) {
+							list.push({model: entry.modelId});
+						}
+						else {
+							list.push({item: entry.itemId, model: entry.modelId});
+						}
+						if( usedInBatch < maxTiles ) {
+							response = aaapi.cmdEx("getNextNearestObjectToPlayerLook");
+						}
+					}
+
+					if( !response.success ) {
+						endOfNearbyReached = true;
+						//syncFetchingNearby = false;
+					}
+
+					if( lastSyncFetchedIndex >= list.length ) {
+						//syncFetchingNearby = false;
+						return;
+					}
+				}
+
+				if( lastSyncFetchedIndex >= list.length-1 ) {
 					return;
 				}
 
@@ -312,6 +376,10 @@
 				}
 			});
 			leftArrow.addEventListener('click', function() {
+				if( syncFetchingNearby ) {
+					return;
+				}
+
 				if( lastSyncFetchedIndex - usedCount <= 0 ) {
 					return;
 				}
@@ -322,7 +390,7 @@
 				}
 				currentFetchIndex--;
 				lastSyncFetchedIndex = previousFetchedIndexes[currentFetchIndex];
-				console.log(lastSyncFetchedIndex);
+				//console.log(lastSyncFetchedIndex);
 
 				//lastSyncFetchedIndex = -1;
 				//lastSyncFetchedIndex = -1;
@@ -342,7 +410,12 @@
 
 				//lastSyncFetchedIndex = previousFetchedIndex;
 
-				console.log(lastSyncFetchedIndex);
+				//console.log(lastSyncFetchedIndex);
+
+				if( !listSelect.value && lastSyncFetchedIndex == 0 ) {
+					lastSyncFetchedIndex--;
+				}
+
 				if( lastSyncFetchedIndex < -1 ) {
 					lastSyncFetchedIndex = -1;
 				}
@@ -466,7 +539,7 @@
 					arcadeHud.loadItemBestImage(previewImage, entry, function(imageElem)
 					{
 						previewImage.style.display = 'block';
-						console.log('finished loading preview image');
+						//console.log('finished loading preview image');
 						//console.log(JSON.stringify(imageElem));
 						/*var primaryImageElem = document.querySelector(".ezThumbBig");
 
@@ -484,7 +557,7 @@
 			}
 
 			function onTileMouseOver(e) {
-				console.log('mouse over');
+				//console.log('mouse over');
 				var entry = this.item;
 				setPreviewEntry(entry);
 				/*arcadeHud.loadItemBestImage(backgroundImageElem, item, function(imageElem)
@@ -514,7 +587,7 @@
 			}
 
 			function onTileMouseOut(e) {
-				console.log('mouse out');
+				//console.log('mouse out');
 			}
 
 			var list = [];	//arcadeHud.favoritesLists[arcadeHud.activeFavoritesList].entries;
@@ -554,9 +627,10 @@
 						if( objectId !== "" )
 						{
 							var object = aaapi.cmdEx("getObject", objectId);
-							if( !!object && object.entity > -1)
+							if( !!object )//&& object.entity > -1)
 							{
 								tile.classList.add('existingObject');
+								tile.classList.add('aaTextColorOneBorderColor');
 							}
 						}
 
@@ -570,7 +644,49 @@
 						//console.log(JSON.stringify(entry));
 						//(item, tilesContainer, mode, searchText, clickCallback, size, height)
 						var size = 90;
-						var tile = arcadeHud.createTile(entry, entriesContainer, 'models', '', null, size, size);
+						//var tile = arcadeHud.createTile(entry, entriesContainer, 'models', '', null, size, size);
+
+						var tile = arcadeHud.createTile(entry, entriesContainer, 'models', '', null, size, size, function() {
+							console.log('HELLO WORLD');
+							var modelFile = this.platforms[arcadeHud.platformId].file;
+							modelFile = modelFile.replace(/\\/g, "/");
+							var tile = this.tile;
+
+							function onNewThumbnailReady(modelThumbnail) {
+								console.log(JSON.stringify(modelThumbnail));
+								arcadeHud.modelPreviewUpdated(tile.modelFile);
+
+								var testModelFile = previewImageContainer.entry.platforms[arcadeHud.platformId].file;
+								testModelFile = testModelFile.replace(/\\/g, "/");
+								//console.log();
+								//if( entry && entry.item && entry.item == previewImageContainer.entry.item ) {
+								if( testModelFile == tile.modelFile ) {
+									console.log('update preview iamge too!');
+									var oldEntry = previewImageContainer.entry;
+									clearPreviewEntry();
+									setPreviewEntry(oldEntry);
+								}
+							}
+
+
+							var modelThumbnail = aaapi.cmdEx("generateModelThumbnail", modelFile, true);
+							if( !!modelThumbnail && modelThumbnail.indexOf("-caching-") == 0 )
+							{
+								setTimeout(function() {
+									var modelThumbnail = aaapi.cmdEx("generateModelThumbnail", modelFile, true);	// to get the actual model file
+									if( !!modelThumbnail && modelThumbnail.indexOf("-caching-") < 0 )
+									{
+										onNewThumbnailReady(modelThumbnail);
+									}
+								}, 1000);
+							}
+							else if( !!modelThumbnail && modelThumbnail.indexOf("-caching-") < 0 )
+							{
+								onNewThumbnailReady(modelThumbnail);
+							}
+						}.bind(entry));
+						entry.tile = tile;
+
 						if( !tile ) {
 							return null;
 						}
@@ -602,9 +718,10 @@
 						if( objectId !== "" )
 						{
 							var object = aaapi.cmdEx("getObject", objectId);
-							if( !!object && object.entity > -1)
+							if( !!object )//&& object.entity > -1)
 							{
 								tile.classList.add('existingObject');
+								tile.classList.add('aaTextColorOneBorderColor');
 							}
 						}
 
@@ -652,6 +769,7 @@
 
 			// sync fetch 10 nearest items
 			var response = aaapi.cmdEx("getNearestObjectToPlayerLook");
+			queryId = response.queryId;
 			while( response.success && list.length < maxTiles) {
 				var entry = response.entry;
 				if( entry.itemId == entry.modelId ) {
@@ -660,7 +778,9 @@
 				else {
 					list.push({item: entry.itemId, model: entry.modelId});
 				}
-				response = aaapi.cmdEx("getNextNearestObjectToPlayerLook");
+				if( list.length < maxTiles ) {
+					response = aaapi.cmdEx("getNextNearestObjectToPlayerLook");
+				}
 			}
 
 			syncFetchNextTile();
@@ -682,6 +802,7 @@
 					if( usedCount >= maxTiles ) {
 						clearInterval(fetchBeat);
 						fetchBeat = null;
+						syncFetchingNearby = false;
 					}
 				}, 1);
 			}
@@ -745,6 +866,45 @@
 				}
 			}
 			//var tile = arcadeHud.createTile(model, entriesContainer, "modelpreview", "", doNothing, 200, 200);
+
+
+
+/*
+			// sync fetch 10 nearest items
+			var mmaxTiles = 1000;
+			var llist = [];
+			var response = aaapi.cmdEx("getNearestObjectToPlayerLook");
+			while( response.success && llist.length < mmaxTiles) {
+				var entry = response.entry;
+				if( entry.itemId == entry.modelId ) {
+					llist.push(entry);//{model: entry.modelId});
+				}
+				else {
+					llist.push(entry);//{item: entry.itemId, model: entry.modelId});
+				}
+				response = aaapi.cmdEx("getNextNearestObjectToPlayerLook");
+			}
+			//console.log(JSON.stringify(llist));
+			var opt;
+			var sel = document.querySelector('#dropdown');
+			for( var i = 0; i < llist.length; i++ ) {
+				opt = document.createElement('option');
+				opt.text = llist[i].title;
+				opt.value = llist[i].id;
+				opt.entry = llist[i];
+				sel.appendChild(opt);
+			}
+			sel.addEventListener('change', function(e) {
+				var opt = sel.querySelector('option[value="' + sel.value + '"]');
+				//console.log(opt.entry);
+				//aaapi.cmd("select " + opt.entry.id);
+					//console.log(entityInfo.object.id);
+					//console.log(JSON.stringify(opt.entry));
+				window.location = 'asset://ui/buildModeContext.html?entity=' + opt.entry.entity;
+				//window.location='asset://ui/editObject.html?id=' + opt.entry.id;
+					//window.location = 'asset://ui/editObject.html?objectId=' + entityInfo.object.id;
+			});
+			*/
 		</script>
 	</body>
 </html>

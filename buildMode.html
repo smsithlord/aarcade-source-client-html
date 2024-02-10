@@ -2,12 +2,39 @@
 	<head>
 		<link rel="stylesheet" type="text/css" href="hud.css"></link>
 		<script src="hud.js"></script>
+		<script src="asset://ui/tga.js"></script>
+
 		<script>
+			var tga = new TGA();
+
 			var g_hiddenItems = localStorage.getItem("hiddenItems");
 			if( !!g_hiddenItems )
 				g_hiddenItems = JSON.parse(g_hiddenItems);
 			else
 				g_hiddenItems = {};
+
+			var onInteractionCallbacks = [];
+			var hasInteracted = false;
+			function interaction(catname) {
+				if( catname == 'custom' ) {
+					// update what the hidden items are
+					g_hiddenItems = localStorage.getItem("hiddenItems");
+					if( !!g_hiddenItems )
+						g_hiddenItems = JSON.parse(g_hiddenItems);
+					else
+						g_hiddenItems = {};
+				}
+
+				if( hasInteracted || catname != 'custom') {
+					return;
+				}
+				hasInteracted = true;
+
+				//console.log("draw thumbnails now");
+				for( var i = 0; i < onInteractionCallbacks.length; i++) {
+					onInteractionCallbacks[i]();
+				}
+			}
 		</script>
 		
 		<script>
@@ -372,6 +399,11 @@
 
 		<style>
 
+
+			.cabCategoryDivDisabled {
+				opacity:  0.5;
+				pointer-events:  none;
+			}
 
 			#cabinetsContainer
 			{
@@ -756,9 +788,14 @@
 							IMAGE
 						</div>
 					</td>
+					<td>
+						<div class="cabCategory cabCategoryDivDisabled" catname="custom" id="cabCategoryDiv" onclick="selectCategory(this);">
+							CUSTOM
+						</div>
+					</td>
 				</tr>
 				<tr>
-					<td colspan="5">
+					<td colspan="6">
 						<div id="cabinetsContainer" style="display: none;" class="aaScrollBars">
 
 				<!--
@@ -2127,8 +2164,43 @@
 
 							entryElem.timeoutHandle = setTimeout(function()
 							{
+								var disabledCatButton = document.querySelector('#cabCategoryDiv');
+								disabledCatButton.classList.remove('cabCategoryDivDisabled');
+								
+								var entry = this.entry;
+								if( !entry || !entry.info || !!g_hiddenItems[entry.info.id] )
+								{
+									return;
+								}
+
 								entryContainerElem.appendChild(this);
-								//console.log(this.entry.platforms[arcadeHud.platformId].file);
+
+								// If this cabinet image failed to load a pre-defined thumbnail,
+								// add a tile to the CUSTOM tab instead.
+								// But wait until the user chooses a category 1st.
+								onInteractionCallbacks.push(function() {
+									var cabinetsContainer = document.querySelector("#cabinetsContainer");
+									var size = 100;
+									var entry = this;
+									var tileContainer = document.createElement('div');
+									tileContainer.style.cssText = "display: inline-block;";
+									cabinetsContainer.appendChild(tileContainer);
+									var tile = arcadeHud.createTile(entry, cabinetsContainer, 'models', '', onClickTest, size, size);
+									function onClickTest()
+									{
+										currentModelId = entry.info.id;
+										loadOldTransform(entry.info.id);
+										aaapi.cmd("cabinetSelected", entry.info.id);
+										selectCategory(document.querySelector('#cabCategoryDiv'));	// so user can see what it looks like in-game
+									}
+
+									if( tile )
+									{
+										tileContainer.classList.add('modelThumb');
+										tileContainer.classList.add("catcustom");
+									}
+								}.bind(entry));
+
 							}.bind(entryElem), 1000);
 
 							entryImage.src = "cabinets/" + imageName + ".png";
@@ -2263,11 +2335,20 @@
 				entryImage.entry = entry;
 
 				var cats = g_cabinetCategories[imageName];
+				if( !cats ) {
+					g_cabinetCategories[imageName] = ['custom'];
+					cats = g_cabinetCategories[imageName];
+				}
+
 				if( !!cats )
 				{
 					for( var i = 0; i < cats.length; i++ )
 						entryImage.classList.add("cat" + cats[i]);
 				}
+				/*else
+				{
+					console.log('cab without any categories detected');
+				}*/
 
 				/*
 				entryImage.addEventListener("load", function(e)
@@ -2292,8 +2373,7 @@
 
 				//entryImageContainer.appendChild(entryImage);
 				//entryElem.appendChild(entryImageContainer);
-				cabinetsContainer.appendChild(entryImage)
-
+				cabinetsContainer.appendChild(entryImage);
 			}
 
 			//if( mode === "select" )
@@ -2363,6 +2443,8 @@
 				}
 				else
 				{
+					interaction(catname);
+
 					var oldElem = document.querySelector(".selectedCabCategory");
 					if( oldElem )
 						oldElem.classList.remove("selectedCabCategory");
@@ -2758,6 +2840,10 @@
 
 		}
 
+		*:not(a) {
+			cursor:  default;
+		}
+
 		.cabCategory
 		{
 			border-width: 2px;
@@ -2767,6 +2853,7 @@
 			font-family: Arial;
 			font-weight: bold;
 			padding: 4px;
+			cursor:  pointer;
 		}
 
 		.cabCategory:hover

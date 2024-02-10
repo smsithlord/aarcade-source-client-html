@@ -470,6 +470,8 @@ function ArcadeHud()
 		}*/
 	};
 
+	this.modelPreviewUpdateHandlers = [];
+
 	this.onDOMReady().then(function()
 	{
 		//console.log("DOM ready on " + document.location.href);
@@ -732,6 +734,27 @@ function ArcadeHud()
 			reloadLabelElem.innerHTML = "&#x21bb;";
 			navigationElem.appendChild(reloadLabelElem);
 
+
+
+			// customJS label
+			/*
+			var customJSLabelElem = document.createElement("div");
+			customJSLabelElem.addEventListener("click", function(e)
+			{
+				//console.log("test");
+				aaapi.cmd("injectWebJS", "var elem = document.querySelector('div[data-testid=\"primaryColumn\"] video'); if( !elem ) elem = document.querySelector('.css-1dbjc4n.r-9aw3ui'); elem.style.width='100vw'; elem.style.height='100vh'; elem.requestFullscreen(); document.addEventListener('click', function() {if(document.fullscreenElement) document.exitFullscreen();});");	//var elem = document.querySelector('video'); elem.requestFullscreen();");
+			}.bind(customJSLabelElem), true);
+			customJSLabelElem.className = "helpNote aaTitleTextSizeFontSize aaTextColorOneColor aaThemeColorOneHoverShadedBackground aaThemeColorOneHoverShadedBorderColor";
+			customJSLabelElem.setAttribute("help", "Inject your custom JS into this page.");
+			this.assignHelp(customJSLabelElem);
+			customJSLabelElem.style.cssText = "margin: 2px; display: inline-block; border-width: 2px; border-style: solid; border-radius: 2px; padding: 1px; padding-left: 5px; padding-right: 5px; text-shadow: 2px 2px 2px #000; font-weight: bold;";
+			customJSLabelElem.innerHTML = "TEST";
+			navigationElem.appendChild(customJSLabelElem);
+			*/
+
+
+
+
 			// foward label
 			var fowardLabelElem = document.createElement("div");
 			fowardLabelElem.addEventListener("click", function(e)
@@ -891,7 +914,6 @@ function ArcadeHud()
 			navigationElem.appendChild(fileLabelElem);
 
 			// file
-			//var pauseIconHTML = arcadeHud.generateIconHTML("scrapeicon.png", iconSize, iconSize, "aaTextColorOneColor");
 			var fileInputElem = document.createElement("input");
 			fileInputElem.setAttribute("help", "The file that is currently being ran by the Libretro core.");
 			fileInputElem.className = "helpNote aaLibretroTopInput aaLibretroTopInputFile aaTitleTextSizeFontSize";
@@ -899,6 +921,40 @@ function ArcadeHud()
 			//fileInputElem.placeholder = "video_file.avi";
 			fileInputElem.style.cssText= "margin: 2px; font-family: Arial; margin-right: 20px;";// margin-right: 20px;
 			navigationElem.appendChild(fileInputElem);
+
+
+
+
+
+			// previous label
+			/*
+			var previousLabelElem = document.createElement("div");
+			previousLabelElem.addEventListener("click", function(e)
+			{
+				aaapi.cmd("goPrevious");
+			}.bind(previousLabelElem), true);
+			previousLabelElem.className = "helpNote fileArrowButton fileArrowButtonPrevious aaTitleTextSizeFontSize aaTextColorOneColor aaThemeColorOneHoverShadedBackground aaThemeColorOneHoverShadedBorderColor";
+			previousLabelElem.setAttribute("help", "Go to the PREVIOUS file in the local folder.");
+			this.assignHelp(previousLabelElem);
+			previousLabelElem.style.cssText = "margin: 2px; display: inline-block; border-width: 2px; border-style: solid; border-radius: 2px; padding: 1px; padding-left: 5px; padding-right: 5px; text-shadow: 2px 2px 2px #000; font-weight: bold;";
+			previousLabelElem.innerHTML = "&#x25C4;";
+			navigationElem.appendChild(previousLabelElem);
+
+			// next label
+			var nextLabelElem = document.createElement("div");
+			nextLabelElem.addEventListener("click", function(e)
+			{
+				aaapi.cmd("goNext");
+			}.bind(nextLabelElem), true);
+			nextLabelElem.className = "helpNote fileArrowButton fileArrowButtonNext aaTitleTextSizeFontSize aaTextColorOneColor aaThemeColorOneHoverShadedBackground aaThemeColorOneHoverShadedBorderColor";
+			nextLabelElem.setAttribute("help", "Go to the NEXT file in the local folder.");
+			this.assignHelp(nextLabelElem);
+			nextLabelElem.style.cssText = "margin: 2px; display: inline-block; border-width: 2px; border-style: solid; border-radius: 2px; padding: 1px; padding-left: 5px; padding-right: 5px; text-shadow: 2px 2px 2px #000; font-weight: bold;";
+			nextLabelElem.innerHTML = "&#x25BA";
+			navigationElem.appendChild(nextLabelElem);
+			*/
+
+
 
 
 			// coreLabel
@@ -1267,6 +1323,7 @@ function ArcadeHud()
 		else if( document.location.href !== "asset://ui/imageLoader.html" )
 		{
 			//console.log("Requesting activate input mode from " + document.location.href);
+			//console.log("TODO: See if extra requestActivateInputMode might cause crash upon deselecting objects.");
 			aaapi.cmd("requestActivateInputMode");	// gets called needlessly when an object is de-selected, but fuck it.
 		}
 
@@ -2008,6 +2065,15 @@ ArcadeHud.prototype.onURLChanged = function(url, scraperId, itemId, field)
 		headerContainerElem.style.visibility = "hidden";
 		headerContainerElem.style.pointerEvents = "none";
 	}
+/*
+	console.log("TEMP: Testing custom JS injection...");
+	setTimeout(function() {
+		console.log(url);
+		if( url.indexOf('twitter.com') >= 0 ) {
+			console.log('do it');
+			aaapi.cmd("injectWebJS", "var elem = document.querySelector('video'); elem.requestFullscreen();");
+		}
+	}, 4000);*/
 };
 
 /**
@@ -2582,6 +2648,27 @@ ArcadeHud.prototype.onActivateInputMode = function(
 				navButtons[i].classList.add("aaDisabled");
 		}
 	}
+
+	// libretro next/previous buttons
+	/*
+	var fileButtons = document.querySelectorAll(".fileArrowButton");
+	for( var i = 0; i < fileButtons.length; i++ )
+	{
+		if( fileButtons[i].classList.contains("fileArrowButtonPrevious") )
+		{
+			if( canGoPrevious == "1" )
+				fileButtons[i].classList.remove("aaDisabled");
+			else
+				fileButtons[i].classList.add("aaDisabled");
+		}
+		else if( fileButtons[i].classList.contains("fileArrowButtonNext") )
+		{
+			if( canGoNext == "1" )
+				fileButtons[i].classList.remove("aaDisabled");
+			else
+				fileButtons[i].classList.add("aaDisabled");
+		}
+	}*/
 
 	var libretroCoreElem = document.querySelector(".aaLibretroTopInputCore");
 	if( !!libretroCoreElem )
@@ -3427,7 +3514,7 @@ ArcadeHud.prototype.favorite = function(mode, itemId)
 	}
 };
 
-ArcadeHud.prototype.createTile = function(item, tilesContainer, mode, searchText, clickCallback, size, height)
+ArcadeHud.prototype.createTile = function(item, tilesContainer, mode, searchText, clickCallback, size, height, longClickCallback)
 {
 	if( !!!item )
 		return;
@@ -3537,11 +3624,19 @@ ArcadeHud.prototype.createTile = function(item, tilesContainer, mode, searchText
 	tile.searchText = searchText;
 	tile.mode = mode;
 	tile.clickCallback = clickCallback;
+	tile.longClickCallback = longClickCallback;
 	tile.mouseDownScroll = -1;
 	tile.addEventListener("mousedown", function(e)
 	{
 		tile.mouseDownScroll = tilesContainer.parentNode.scrollTop;
 	}.bind(tile), false);
+
+	if( longClickCallback ) {
+		tile.addEventListener('mousedown', function(){tile.timeout = setTimeout(function(){tile.didLongClick=true;longClickCallback();}, 1000);});
+		tile.addEventListener('mouseup', function(e){if(tile.timeout){clearTimeout(tile.timeout);tile.timeout=null;}});
+		tile.addEventListener('mouseout', function(){if(tile.timeout){clearTimeout(tile.timeout);tile.timeout=null;}});
+		document.addEventListener('mousemove', function(){if(tile.timeout){clearTimeout(tile.timeout);tile.timeout=null;}}, false);
+	}
 
 	if( !clickCallback && (mode == "maps" || mode == "screenshots") )
 	{
@@ -3590,6 +3685,11 @@ ArcadeHud.prototype.createTile = function(item, tilesContainer, mode, searchText
 	{
 		tile.addEventListener("click", function(e)
 		{
+			if( this.didLongClick ) {
+				this.didLongClick = false;
+				return;
+			}
+			
 			//console.log(tilesContainer.parentNode.scrollTop);
 			if( tile.mouseDownScroll < 0 || tile.mouseDownScroll != tilesContainer.parentNode.scrollTop )
 				return;
@@ -4284,59 +4384,88 @@ ArcadeHud.prototype.createTile = function(item, tilesContainer, mode, searchText
 	}
 	else if( mode != 'maps' && mode != 'screenshots' )
 	{
-		function loadModelTGA()
+		function handleModelPreviewLoad(modelFile)
 		{
-			tga.open(modelThumbnail, function()
+			if( !modelFile || modelFile != this.modelFile )	// this function is also used as an event listener, so filter out events that are not for us.
 			{
-				var elem = tga.getCanvas();
+				return;
+			}
 
-				var goodWidth = 100;
-				var goodHeight = 100;
-				if( size > 0 )
-				{
-					goodWidth = Math.round((goodWidth / 100.0) * (size*1.0));
-					goodHeight = Math.round((goodHeight / 100.0) * (size*1.0));
-				}
-				//elem.style.cssText = "width: " + goodWidth + "px; height: " + goodWidth + "px;";
-	//fieldValue = arcadeHud.generateCRC(fieldValue);
-//console.log("yadda");
-				tile.style.backgroundImage = "url(\"" + elem.toDataURL("image/png", 0.9) + "\")";
+			var modelThumbnail = this.modelThumbnail;
+			var size = this.size;
+			var tile = this.tile;
+			var tileImage = this.tileImage;
 
-				// TODO: cleanup the canvas, don't need it anymore.  Must worry about scope here & delete all references.
-				//elem.parentNode.removeChild(elem);
-
-				tile.style.backgroundRepeat = "no-repeat";
-				tile.style.backgroundSize = "cover";
-				tile.style.backgroundPosition = "center";
-
-				//tileImage.appendChild(elem);
-
-				tileImage.style.display = "block";
-				if( imageTilesOnly && mode === "items" )
-					tileImage.parentNode.style.opacity = "1";
-
-				//tileImage.parentNode.style.backgroundImage = "none";
-				tileImage.parentNode.removeChild(tileImage);
-			   //document.querySelector("#mapImageContainer").appendChild(mapImage);
-			});
-		}
-
-		var tga = new TGA();
-		if( modelThumbnail.indexOf("-caching-") < 0 )
-			loadModelTGA();
-		else
-		{
-			setTimeout(function()
+			function loadModelTGA()
 			{
-				modelThumbnail = aaapi.cmdEx("generateModelThumbnail", modelFile);
-				if( !!modelThumbnail && modelThumbnail.indexOf("-caching-") < 0 )
-					loadModelTGA();
-				else
+				tga.open(modelThumbnail, function()
 				{
-					tileImage.parentNode.removeChild(tileImage);
-				}
-			}, 1000);
+					var elem = tga.getCanvas();
+
+					var goodWidth = 100;
+					var goodHeight = 100;
+					if( size > 0 )
+					{
+						goodWidth = Math.round((goodWidth / 100.0) * (size*1.0));
+						goodHeight = Math.round((goodHeight / 100.0) * (size*1.0));
+					}
+					//elem.style.cssText = "width: " + goodWidth + "px; height: " + goodWidth + "px;";
+		//fieldValue = arcadeHud.generateCRC(fieldValue);
+	//console.log("yadda");
+					tile.style.backgroundImage = "url(\"" + elem.toDataURL("image/png", 0.9) + "\")";
+
+					// TODO: cleanup the canvas, don't need it anymore.  Must worry about scope here & delete all references.
+					//elem.parentNode.removeChild(elem);
+
+					tile.style.backgroundRepeat = "no-repeat";
+					tile.style.backgroundSize = "cover";
+					tile.style.backgroundPosition = "center";
+
+					//tileImage.appendChild(elem);
+
+					tileImage.style.display = "block";
+
+					if( tileImage.parentNode )
+					{
+						if( imageTilesOnly && mode === "items" )
+							tileImage.parentNode.style.opacity = "1";
+
+						//tileImage.parentNode.style.backgroundImage = "none";
+						tileImage.parentNode.removeChild(tileImage);
+					}
+				   //document.querySelector("#mapImageContainer").appendChild(mapImage);
+				});
+			}
+
+			var tga = new TGA();
+			if( modelThumbnail.indexOf("-caching-") < 0 )
+				loadModelTGA();
+			else
+			{
+				setTimeout(function()
+				{
+					modelThumbnail = aaapi.cmdEx("generateModelThumbnail", modelFile);
+					if( !!modelThumbnail && modelThumbnail.indexOf("-caching-") < 0 )
+						loadModelTGA();
+					else
+					{
+						if( tileImage.parentNode ) {
+							tileImage.parentNode.removeChild(tileImage);
+						}
+					}
+				}, 1000);
+			}
 		}
+		var handleModelPreviewLoadHandler = handleModelPreviewLoad.bind({
+			modelFile: modelFile,
+			modelThumbnail: modelThumbnail,
+			size: size,
+			tile: tile,
+			tileImage: tileImage
+		});
+		tile.modelFile = modelFile;
+		arcadeHud.modelPreviewUpdateHandlers.push(handleModelPreviewLoadHandler);
+		handleModelPreviewLoadHandler(modelFile);
 	}
 	else if( mode == 'maps' || mode == 'screenshots')
 	{
@@ -4417,6 +4546,14 @@ ArcadeHud.prototype.createTile = function(item, tilesContainer, mode, searchText
 	//tile.offsetWidth;
 	//tile.style.opacity = "1.0";
 };
+
+ArcadeHud.prototype.modelPreviewUpdated = function(modelFile)
+{
+	for( var i = 0; i < this.modelPreviewUpdateHandlers.length; i++ )
+	{
+		this.modelPreviewUpdateHandlers[i](modelFile);
+	}
+}
 
 ArcadeHud.prototype.showPopupMenu = function(popupId, x, y, width, height, itemHeight, fontSize, selectedItem, rightAligned)
 {
@@ -5462,6 +5599,7 @@ ArcadeHud.prototype.onBrowserFinishedRequest = function(url, scraperId, itemId, 
 		this.activeScraperItemId = itemId;
 		this.activeScraperField = field;
 	}
+
 	//console.log("yar yar yar");
 	//console.log(this.activeScraper);
 	//if( this.activeScraper )

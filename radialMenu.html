@@ -1,0 +1,797 @@
+<html>
+	<head>
+		<title>Radial Menu</title>
+		<link rel="stylesheet" type="text/css" href="asset://ui/hud.css"></link>
+		<script src="asset://ui/tga.js"></script>
+		<script>
+			var tga = new TGA();
+		</script>
+		<script src="asset://ui/hud.js"></script>
+		<style type="text/css">
+			body, html {
+				width:  100%;
+				height:  100%;
+				overflow:  hidden;
+			}
+
+			body {
+				/*background-color:  rgba(0, 0, 0, 0.95);*/
+			}
+
+			.helpOverride {
+				padding:  16px;
+				border-radius:  8px;
+				background-color:  rgba(0, 0, 0, 0.8);
+				position:  relative;
+				top:  100px;
+			}
+
+			.helpOverride * {
+				text-align:  center !important;
+				max-width:  250px;
+				max-height:  150px;
+				overflow-y:  hidden;
+			}
+
+			#previewImageContainer {
+				position: absolute;
+				left: 50%;
+				top: 50%;
+				-webkit-transform: translate(-50%, -50%);
+				width:  400px;
+				height:  400px;
+				border-radius:  50%;
+				pointer-events:  none;
+			}
+
+			#previewImage {
+				border-radius:  50%;
+				width:  400px;
+				height:  400px;
+			}
+
+			#backgroundSlate {
+				position: absolute;
+				left: 50%;
+				top: 50%;
+				-webkit-transform: translate(-50%, -50%);
+				width:  740px;
+				height:  740px;
+				border-radius:  50%;
+				background-color:  rgba(0, 0, 0, 0.7);
+			}
+
+			#listAreaSlate {
+				position: absolute;
+				left: 50%;
+				top: 50%;
+				-webkit-transform: translate(-50%, -50%);
+				width:  450px;
+				height:  450px;
+				border-radius:  50%;
+				background-color:  rgba(0, 0, 0, 0.7);
+			}
+
+			#centerArea * {
+				text-align:  center !important;
+			}
+
+			.scrollable::-webkit-scrollbar
+			{
+				width: 15px;
+				height: 15px;
+			}
+
+			.scrollable::-webkit-scrollbar-track
+			{
+				-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.7);
+				border-radius: inherit;
+				background-color: rgba(100, 100, 100, 0.7);
+			}
+
+			.scrollable::-webkit-scrollbar-thumb
+			{
+				border-radius: inherit;
+				-webkit-box-shadow: inset 0 0 6px rgba(100,100,100,1);
+				background-color: #777;
+			}
+
+			.scrollable::-webkit-scrollbar-corner
+			{
+				background-color: transparent;
+			}
+
+
+			.arrowContainer {
+				padding:  16px;
+				background-color:  rgba(50, 50, 50, 0.7);
+				border-radius: 50%;
+				margin:  16px;
+				cursor:  pointer;
+				pointer-events: all;
+			}
+
+			.arrowContainer:hover {
+				background-color:  rgba(50, 50, 50, 0.9);
+			}
+
+			.arrow {
+				border: solid #fff;
+				border-width: 0 8px 8px 0;
+				display: inline-block;
+				padding: 3px;
+			}
+
+			.left {
+				-webkit-transform: rotate(135deg);
+			}
+
+			.right {
+				-webkit-transform: rotate(-45deg);
+			}
+
+			.existingObject {
+				border:  4px solid #cc0000 !important;
+			}
+		</style>
+	</head>
+	<body>
+		<a href="javascript:document.location.reload();">yadda</a>
+		<div id="backgroundSlate"></div>
+		<div id="listAreaSlate"></div>
+		<div id="listArea" style="position: absolute; left: 50%; top: 50%; -webkit-transform: translate(-50%, -50%); text-align: center;">
+			<table style="pointer-events: none;">
+				<tr>
+					<td>
+						<div class="arrowContainer arrowContainerLeft"><i class="arrow left"></i></div>
+					</td>
+					<td>
+						<select id="listSelect" size="4" style="width: 250px; height: 350px; text-align: center; background-color: rgba(0, 0, 0, 0.9); color: #ccc; font-size: 16px; font-family: Arial; letter-spacing: 0.1em; padding: 8px; border-radius: 8px; cursor: default; pointer-events: all;" class="scrollable">
+						</select>
+					</td>
+					<td>
+						<div class="arrowContainer arrowContainerRight"><i class="arrow right"></i></div>
+					</td>
+				</tr>
+			</table>
+		</div>
+		<div id="previewImageContainer"><div id="modelPreviewImage"></div><img src="" id="previewImage" /></div>
+		<div id="centerArea" style="position: absolute; left: 50%; top: 50%; -webkit-transform: translate(-50%, -50%); max-width: 300px; word-wrap: break-word;">
+			<div class="aaHelpContainer helpOverride"></div>
+		</div>
+		<div id="testDiv"></div>
+
+		<script>
+			var favoritesListId = arcadeHud.activeFavoritesList;
+
+			// populate the favorites list
+			var listSelect = document.querySelector('#listSelect');
+			// add in all the lists to the box
+			var option, list;
+			for( var listId in arcadeHud.favoritesLists )
+			{
+				list = arcadeHud.favoritesLists[listId];
+				option = document.createElement("option");
+				option.value = listId;
+				option.text = list.title + ' (' + list.entries.length + ')';
+
+				//if( listId === favoritesListId )
+				//	option.selected = true;
+
+				listSelect.appendChild(option);
+			}
+
+			var rightArrow = document.querySelector('.arrowContainerRight');
+			var leftArrow = document.querySelector('.arrowContainerLeft');
+			var centerArea = document.querySelector('#centerArea');
+			var entriesContainer = document.querySelector('#testDiv');
+			var listArea = document.querySelector('#listArea');
+			var listAreaSlate = document.querySelector('#listAreaSlate');
+			listAreaSlate.addEventListener('mouseover', function() {
+				listArea.style.display = 'block';
+				clearPreviewEntry();
+			});
+
+			var positions = [
+				{
+					left: '962px',
+					top: '245px',
+					rot: '0deg'
+				},
+				{
+					left: '1074px',
+					top: '269px',
+					rot: '22.5deg'
+				},
+				{
+					left: '1169px',
+					top: '332px',
+					rot: '45deg'
+				},
+				{
+					left: '1229px',
+					top: '425px',
+					rot: '67.5deg'
+				},
+				{
+					left: '1252px',
+					top: '541px',
+					rot: '90deg'
+				},
+				{
+					left: '1229px',
+					top: '654px',
+					rot: '292.5deg'
+				},
+				{
+					left: '1169px',
+					top: '747px',
+					rot: '315deg'
+				},
+				{
+					left: '1075px',
+					top: '810px',
+					rot: '337.5deg'
+				},
+				{
+					left: '962px',
+					top: '834px',
+					rot: '0deg'
+				},
+				{
+					left: '845px',
+					top: '810px',
+					rot: '22.5deg'
+				},
+				{
+					left: '750px',
+					top: '747px',
+					rot: '45deg'
+				},
+				{
+					left: '690px',
+					top: '645px',
+					rot: '67.5deg'
+				},
+				{
+					left: '667px',
+					top: '541px',
+					rot: '-90deg'
+				},
+				{
+					left: '680px',
+					top: '425px',
+					rot: '-67.5deg'
+				},
+				{
+					left: '750px',
+					top: '332px',
+					rot: '-45deg'
+				},
+				{
+					left: '845px',
+					top: '269px',
+					rot: '-22.5deg'
+				}
+			];
+
+			var windowHeight = window.innerHeight;
+			var windowWidth = window.innerWidth;
+
+			var backgroundSlate = document.querySelector('#backgroundSlate');
+			backgroundSlate.addEventListener('mouseover', function(e) {
+				clearPreviewEntry();
+				listArea.style.display = 'none';
+			});
+
+			var previewImageContainer = document.querySelector('#previewImageContainer');
+			var previewImage = document.querySelector('#previewImage');
+			var modelPreviewImage = document.querySelector('#modelPreviewImage');
+
+			var currentFetchIndex = 0;
+			var previousFetchedIndexes = {};
+			rightArrow.addEventListener('click', function() {
+				if( lastSyncFetchedIndex >= list.length - 1 ) {
+					return;
+				}
+
+				var victims = document.querySelectorAll('.entryTile');
+				for( var i = 0; i < victims.length; i++ ) {
+					victims[i].parentNode.removeChild(victims[i]);
+				}
+
+				currentFetchIndex++;
+				//lastSyncFetchedIndex = -1;
+				//numTilesUsed = 0;
+				//queryId = null;
+				//list = arcadeHud.favoritesLists[listSelect.value].entries;
+				usedCount = 0;
+
+				if( fetchBeat === null ) {
+					startInterval();
+				}
+			});
+			leftArrow.addEventListener('click', function() {
+				if( lastSyncFetchedIndex - usedCount <= 0 ) {
+					return;
+				}
+
+				var victims = document.querySelectorAll('.entryTile');
+				for( var i = 0; i < victims.length; i++ ) {
+					victims[i].parentNode.removeChild(victims[i]);
+				}
+				currentFetchIndex--;
+				lastSyncFetchedIndex = previousFetchedIndexes[currentFetchIndex];
+				console.log(lastSyncFetchedIndex);
+
+				//lastSyncFetchedIndex = -1;
+				//lastSyncFetchedIndex = -1;
+				//numTilesUsed = 0;
+				//queryId = null;
+				//list = arcadeHud.favoritesLists[listSelect.value].entries;
+				//usedCount = 0;
+				//console.log(usedCount + ' vs ' + lastSyncFetchedIndex + ' vs ' + maxTiles);
+				/*numTilesUsed -= (usedCount + maxTiles);
+				if( numTilesUsed < 0 ) {
+					numTilesUsed = 0;
+				}*/
+				//console.log(lastSyncFetchedIndex);
+				//lastSyncFetchedIndex = lastSyncFetchedIndex - usedCount;
+				//lastSyncFetchedIndex = lastSyncFetchedIndex - (lastSyncFetchedIndex - maxTiles);
+				//lastSyncFetchedIndex = lastSyncFetchedIndex - maxTiles - 1;
+
+				//lastSyncFetchedIndex = previousFetchedIndex;
+
+				console.log(lastSyncFetchedIndex);
+				if( lastSyncFetchedIndex < -1 ) {
+					lastSyncFetchedIndex = -1;
+				}
+				usedCount = 0;
+
+				if( fetchBeat === null ) {
+					startInterval();
+				}
+			});
+
+			function onListChange() {
+				console.log('change the list to: ' + listSelect.value);
+				var victims = document.querySelectorAll('.entryTile');
+				for( var i = 0; i < victims.length; i++ ) {
+					victims[i].parentNode.removeChild(victims[i]);
+				}
+
+				lastSyncFetchedIndex = -1;
+				numTilesUsed = 0;
+				queryId = null;
+				list = arcadeHud.favoritesLists[listSelect.value].entries;
+				usedCount = 0;
+
+				if( fetchBeat === null ) {
+					startInterval();
+				}
+			}
+
+			listSelect.addEventListener('change', onListChange);
+
+			function clearPreviewEntry() {
+				previewImageContainer.style.display = 'none';
+				//modelPreviewImage.innerHTML = '';
+				//listArea.style.display = 'block';
+			}
+			function setPreviewEntry(entry) {
+				previewImageContainer.style.display = 'block'
+				previewImage.style.display = 'block';
+				listArea.style.display = 'none';
+				if( entry && entry.item && entry.item == previewImageContainer.entry.item ) {
+					return;
+				}
+//console.log('set preview');
+				//previewImage.style.display = 'none';
+				modelPreviewImage.style.display = 'none';
+				modelPreviewImage.innerHTML = '';
+				previewImageContainer.entry = entry;
+
+				var modelFile;
+				var modelThumbnail;
+				//&& (!!!entry.screen || entry.screen.indexOf(".") < 0)
+				if( arcadeHud.modelThumbs && !!entry && arcadeHud.npcs.indexOf(entry.info.id) < 0 && arcadeHud.defaultModels.indexOf(entry.info.id) < 0 && arcadeHud.letters.indexOf(entry.info.id) < 0 && !!entry.platforms && !!entry.platforms[arcadeHud.platformId] && !!entry.platforms[arcadeHud.platformId].file && entry.platforms[arcadeHud.platformId].file.indexOf(".mdl") === entry.platforms[arcadeHud.platformId].file.length-4 )
+				{
+					previewImage.style.display = 'none';
+					modelFile = entry.platforms[arcadeHud.platformId].file;
+					modelFile = modelFile.replace(/\\/g, "/");
+					modelThumbnail = aaapi.cmdEx("generateModelThumbnail", modelFile);
+
+					//var thumbImageElem = this.thumbImageElem;
+					function loadModelTGA()
+					{
+						tga.open(modelThumbnail, function()
+						{
+							var elem = tga.getCanvas();
+							elem.style.cssText = "width: 100%;";
+
+							var imageElem = modelPreviewImage;
+							modelPreviewImage.innerHTML = '';
+							imageElem.appendChild(elem);
+
+							if( !!imageElem.parentNode.timeoutHandle )
+							{
+								clearTimeout(imageElem.parentNode.timeoutHandle);
+								delete imageElem.parentNode.timeoutHandle;
+							}
+
+							//if( imageElem.parentNode.classList.contains("ezThumbBig") )
+							//	noImageElem.style.display = "none";
+
+							//imageElem.hasImage = true;
+							modelPreviewImage.style.display = 'block';
+						});
+					}
+
+					//var tga = new TGA();
+					if( modelThumbnail.indexOf("-caching-") < 0 )
+						loadModelTGA();
+					else
+					{
+						setTimeout(function()
+						{
+							modelThumbnail = aaapi.cmdEx("generateModelThumbnail", modelFile);
+							if( !!modelThumbnail && modelThumbnail.indexOf("-caching-") < 0 )
+							{
+								loadModelTGA();
+							}
+							else
+							{
+								//console.log('caching branch');
+								if( !!imageElem.parentNode.timeoutHandle )
+								{
+									clearTimeout(imageElem.parentNode.timeoutHandle);
+									delete imageElem.parentNode.timeoutHandle;
+								}
+
+								//if( imageElem.parentNode.classList.contains("ezThumbBig") )
+								//	noImageElem.style.display = "block";
+
+								//imageElem.hasImage = false;
+
+								//if( g_context === "items" )
+									//imageElem.src = "noimage.png";
+								//else
+								//	imageElem.src = "noimageicon.png";
+							}
+						}, 1000);
+					}
+				}
+				else
+				{
+					arcadeHud.loadItemBestImage(previewImage, entry, function(imageElem)
+					{
+						previewImage.style.display = 'block';
+						console.log('finished loading preview image');
+						//console.log(JSON.stringify(imageElem));
+						/*var primaryImageElem = document.querySelector(".ezThumbBig");
+
+						//if( primaryImageElem.item !== imageElem.item )
+						//	return;
+						
+						//console.log(primaryImageElem.querySelector(".ezThumbImage").src + " vs " + imageElem.src);
+
+						if( primaryImageElem.querySelector(".ezThumbImage").src !== imageElem.src )
+							backgroundContainerElem.style.display = "block";
+						else
+							backgroundContainerElem.style.display = "none";*/
+					});
+				}
+			}
+
+			function onTileMouseOver(e) {
+				console.log('mouse over');
+				var entry = this.item;
+				setPreviewEntry(entry);
+				/*arcadeHud.loadItemBestImage(backgroundImageElem, item, function(imageElem)
+				{
+					var primaryImageElem = document.querySelector(".ezThumbBig");
+
+					//if( primaryImageElem.item !== imageElem.item )
+					//	return;
+					
+					//console.log(primaryImageElem.querySelector(".ezThumbImage").src + " vs " + imageElem.src);
+
+					if( primaryImageElem.querySelector(".ezThumbImage").src !== imageElem.src )
+						backgroundContainerElem.style.display = "block";
+					else
+						backgroundContainerElem.style.display = "none";
+				}, function(imageElem)
+				{
+					var primaryImageElem = document.querySelector(".ezThumbBig");
+
+					//console.log(primaryImageElem.querySelector(".ezThumbImage") + " vs " + imageElem);
+
+					//if( primaryImageElem.querySelector(".ezThumbImage") !== imageElem )
+					//	return;				
+
+					backgroundContainerElem.style.display = "none";
+				}, {"screen": true, "preview": true, "file": true});*/
+			}
+
+			function onTileMouseOut(e) {
+				console.log('mouse out');
+			}
+
+			var list = [];	//arcadeHud.favoritesLists[arcadeHud.activeFavoritesList].entries;
+			var usedCount = 0;
+			function addTile(entryInfo) {
+				if( entryInfo.hasOwnProperty('item') && entryInfo.item != entryInfo.model ) {
+					entry = aaapi.cmdEx('getLibraryItem', entryInfo.item);
+					if( entry ) {
+						//(item, tilesContainer, mode, searchText, clickCallback, size, height)
+						var size = 90;
+						var tile = arcadeHud.createTile(entry, entriesContainer, 'items', '', null, size, size);
+						if( !tile ) {
+							return null;
+						}
+						tile.addEventListener('mouseover', onTileMouseOver.bind(tile));
+						//tile.addEventListener('mouseout', onTileMouseOut.bind(tile));
+
+
+						//tile.style.cssText = 'position: absolute; width: ' + size + 'px; height: ' + size + 'px; border-radius: 16px; -webkit-transform: translate(-50%, -50%) rotate(' + positions[usedCount].rot + '); -webkit-transition: all 1s ease-in-out; opacity: 1;';
+						tile.style.cssText = 'position: absolute; width: ' + size + 'px; height: ' + size + 'px; border-radius: 50%; -webkit-transform: translate(-50%, -50%);';//border-radius: 16px;// rotate(' + positions[usedCount].rot + ')
+						tile.classList.add('entryTile');
+						tile.style.top = positions[usedCount].top;
+						tile.style.left = positions[usedCount].left;
+						//tile.style.top = Math.round(windowHeight / 2);
+						//tile.style.left = Math.round(windowWidth / 2);
+						/*tile.usedCount = usedCount + 0;
+						var delay = usedCount * 100;
+						setTimeout(function() {
+							var tile = this;
+							var usedCount = this.usedCount;
+							tile.style.top = positions[usedCount].top;
+							tile.style.left = positions[usedCount].left;
+							tile.style.opacity = 1;
+						}.bind(tile), delay);*/
+
+						var objectId = aaapi.cmdEx("getObjectWithItemId", entryInfo.item, false);
+						if( objectId !== "" )
+						{
+							var object = aaapi.cmdEx("getObject", objectId);
+							if( !!object && object.entity > -1)
+							{
+								tile.classList.add('existingObject');
+							}
+						}
+
+						usedCount++;
+						return tile;
+					}
+				}
+				else if( entryInfo.hasOwnProperty('model') ) {
+					entry = aaapi.cmdEx('getLibraryModel', entryInfo.model);
+					if( entry ) {
+						//console.log(JSON.stringify(entry));
+						//(item, tilesContainer, mode, searchText, clickCallback, size, height)
+						var size = 90;
+						var tile = arcadeHud.createTile(entry, entriesContainer, 'models', '', null, size, size);
+						if( !tile ) {
+							return null;
+						}
+						tile.addEventListener('mouseover', onTileMouseOver.bind(tile));
+						//tile.style.cssText = 'position: absolute; width: ' + size + 'px; height: ' + size + 'px; border-radius: 16px; -webkit-transform: translate(-50%, -50%) rotate(' + positions[usedCount].rot + '); -webkit-transition: all 1s ease-in-out; opacity: 1; -webkit-transition-delay: ' + (((usedCount+1) * 100)/1000) + 's;';
+						tile.style.cssText = 'position: absolute; width: ' + size + 'px; height: ' + size + 'px; border-radius: 50%; -webkit-transform: translate(-50%, -50%);';
+						tile.classList.add('entryTile');
+						tile.style.top = positions[usedCount].top;
+						tile.style.left = positions[usedCount].left;
+						//tile.style.top = Math.round(windowHeight / 2);
+						//tile.style.left = Math.round(windowWidth / 2);
+						//tile.offsetWidth;
+						//if( positions[usedCount] ) {
+						//	tile.style.top = positions[usedCount].top;
+						//	tile.style.left = positions[usedCount].left;
+						//}
+
+						/*tile.usedCount = usedCount + 0;
+						var delay = usedCount * 100;
+						setTimeout(function() {
+							var tile = this;
+							var usedCount = this.usedCount;
+							tile.style.top = positions[usedCount].top;
+							tile.style.left = positions[usedCount].left;
+							tile.style.opacity = 1;
+						}.bind(tile), delay);*/
+
+						var objectId = aaapi.cmdEx("getObjectWithModelId", entryInfo.model, false);
+						if( objectId !== "" )
+						{
+							var object = aaapi.cmdEx("getObject", objectId);
+							if( !!object && object.entity > -1)
+							{
+								tile.classList.add('existingObject');
+							}
+						}
+
+						usedCount++;
+						return tile;
+					}
+				}
+
+				return null;
+			}
+
+			var maxTiles = Object.keys(positions).length;
+			var numTilesUsed = 0;
+			var queryId = null;
+			function fetchNextTile() {
+				// NOTE: queryId is not actually needed because the API only lets 1 active query be open at a time.
+				var nearestObjectResponse = (!queryId) ? aaapi.cmdEx("getNearestObjectToPlayerLook", 300) : aaapi.cmdEx("getNextNearestObjectToPlayerLook", 300);
+				if( nearestObjectResponse.success ) {
+					queryId = nearestObjectResponse.queryId;
+					numTilesUsed++;
+					if( nearestObjectResponse && nearestObjectResponse.success ) {
+						queryId = nearestObjectResponse.queryId;
+						var entry = nearestObjectResponse.entry;
+						if( entry.itemId == entry.modelId ) {
+							list.push({model: entry.modelId});
+						}
+						else {
+							list.push({item: entry.itemId, model: entry.modelId});
+						}
+						return addTile(list[list.length-1]);
+					}
+				}
+				return null;
+			}
+
+			var lastSyncFetchedIndex = -1;
+			function syncFetchNextTile() {
+				if( lastSyncFetchedIndex + 1 >= list.length || usedCount >= positions.length ) {
+					return null;
+				}
+
+				lastSyncFetchedIndex++;
+				return addTile(list[lastSyncFetchedIndex]);
+			}
+
+			// sync fetch 10 nearest items
+			var response = aaapi.cmdEx("getNearestObjectToPlayerLook");
+			while( response.success && list.length < maxTiles) {
+				var entry = response.entry;
+				if( entry.itemId == entry.modelId ) {
+					list.push({model: entry.modelId});
+				}
+				else {
+					list.push({item: entry.itemId, model: entry.modelId});
+				}
+				response = aaapi.cmdEx("getNextNearestObjectToPlayerLook");
+			}
+
+			syncFetchNextTile();
+
+			var fetchBeat = null;
+
+			function startInterval() {
+
+				previousFetchedIndexes[currentFetchIndex] = lastSyncFetchedIndex;
+
+				fetchBeat = setInterval(function() {
+					/*if( !syncFetchNextTile() ) {
+						clearInterval(fetchBeat);
+						fetchBeat = null;
+					}
+					else*/
+					syncFetchNextTile();
+					//if( numTilesUsed >= maxTiles ) {
+					if( usedCount >= maxTiles ) {
+						clearInterval(fetchBeat);
+						fetchBeat = null;
+					}
+				}, 1);
+			}
+			startInterval();
+
+			//function addEntryTile(entryId, entryType) {
+
+			//}
+
+			if( false ) {
+				var listEntry, entry;
+				var usedCount = 0;
+				for( var i = 0; i < list.length && usedCount < 16; i++ ) {
+					listEntry = list[i];
+					console.log(JSON.stringify(listEntry));
+					if( listEntry.hasOwnProperty('item') ) {
+						entry = aaapi.cmdEx('getLibraryItem', listEntry.item);
+						if( entry ) {
+							//(item, tilesContainer, mode, searchText, clickCallback, size, height)
+							var size = 90;
+							var tile = arcadeHud.createTile(entry, entriesContainer, 'items', '', null, size, size);
+							if( !tile ) {
+								continue;
+							}
+							tile.style.cssText = 'position: absolute; width: ' + size + 'px; height: ' + size + 'px; border-radius: 16px; -webkit-transform: translate(-50%, -50%) rotate(' + positions[usedCount].rot + '); -webkit-transition: all 1s ease-in-out; opacity: 0;';
+							tile.style.top = Math.round(window.innerHeight / 2);
+							tile.style.left = Math.round(window.innerWidth / 2);
+							tile.offsetWidth;
+							tile.usedCount = usedCount + 0;
+							var delay = usedCount * 100;
+							setTimeout(function() {
+								var tile = this;
+								var usedCount = this.usedCount;
+								tile.style.top = positions[usedCount].top;
+								tile.style.left = positions[usedCount].left;
+								tile.style.opacity = 1;
+							}.bind(tile), delay);
+							//tile.style.width =  size + 'px';
+							//tile.style.height = size + 'px';//
+							usedCount++;
+						}
+					}
+					else if( listEntry.hasOwnProperty('model') ) {
+						entry = aaapi.cmdEx('getLibraryModel', listEntry.model);
+						if( entry ) {
+							//(item, tilesContainer, mode, searchText, clickCallback, size, height)
+							var size = 90;
+							var tile = arcadeHud.createTile(entry, entriesContainer, 'models', '', null, size, size);
+							if( !tile ) {
+								continue;
+							}
+							tile.style.cssText = '-webkit-transform: translate(-50%, -50%) rotate(' + positions[usedCount].rot + '); position: absolute; width: ' + size + 'px; height: ' + size + 'px; border-radius: 16px;';
+							tile.style.top = positions[usedCount].top;
+							tile.style.left = positions[usedCount].left;
+							usedCount++;
+						}
+					}
+					else {
+						console.log('other');
+					}
+				}
+			}
+			//var tile = arcadeHud.createTile(model, entriesContainer, "modelpreview", "", doNothing, 200, 200);
+		</script>
+	</body>
+</html>
+
+<!--<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="asset://ui/hud.css"></link>
+		<script src="asset://ui/hud.js"></script>
+	</head>
+	<body>
+
+		<table style="width: 100%; height: 100%;" cellspacing="0" cellpadding="0">
+			<tr>
+				<td align="center">
+					<div id="center"></div>
+				</td>
+			</tr>
+		</table>
+
+		<script>
+			var centerDiv = document.querySelector("#center");
+			var lastAddedIndex = -1;
+			var entry;
+			for( var x in arcadeHud.favorites )
+			{
+				entry = arcadeHud.favorites[x];
+				centerDiv.innerHTML += JSON.stringify(entry);
+			}-
+
+			/*
+			arcadeHud.activeFavoritesList;
+
+			// add in all the lists to the box
+			var option, list;
+			for( var listId in arcadeHud.favoritesLists )
+			{
+				list = arcadeHud.favoritesLists[listId];
+				option = document.createElement("option");
+				option.value = listId;
+				option.text = list.title;
+
+				if( listId === arcadeHud.activeFavoritesList )
+					option.selected = true;
+
+				listSelect.appendChild(option);
+			}
+			*/
+		</script>
+	</body>
+</html>-->

@@ -1,0 +1,348 @@
+<html>
+	<head>
+		<title>Animating Images</title>
+		<style>
+			html, body
+			{
+				width: 100%;
+				height: 100%;
+				overflow: hidden;
+				margin: 0;
+				padding: 0;
+				background-color: transparent;
+			}
+
+			#imagesContainer
+			{
+				width: 100%;
+				height: 100%;
+			}
+
+			img, video {
+				box-sizing:  border-box;
+				/*border: 2px solid red;*/
+			}
+		</style>
+	</head>
+	<body>
+		<div id='imagesContainer'></div>
+		<script>
+			var innerWidth = document.body.offsetWidth;
+			var innerHeight = document.body.offsetHeight;
+			var imagesContainer = document.querySelector('#imagesContainer');
+
+			var factor = 1.0;
+			function addImage(img)
+			{
+				var victim = imagesContainer.querySelector("img[itemId=\"" + img.getAttribute('itemId') + "\"], video[itemId=\"" + img.getAttribute('itemId') + "\"]");
+				/*var victim = imagesContainer.querySelector("img[itemId=\"" + img.getAttribute('itemId') + "\"]");
+				if( !victim ) {
+					victim = imagesContainer.querySelector("video[itemId=\"" + img.getAttribute('itemId') + "\"]");
+				}
+				if( !victim ) {
+					return;
+				}*/
+
+				//var victim = imagesContainer.querySelector("img[itemId=\"" + image.getAttribute('itemId') + "\"], video[itemId=\"" + image.getAttribute('itemId') + "\"]");
+				//var victim = imagesContainer.querySelector("img[itemId=\"" + imgitemId + "\"]");
+
+				var oldFactor = factor;
+				var imageElems = imagesContainer.querySelectorAll('img, video');
+
+				factor = Math.ceil(Math.sqrt(imageElems.length + 1)) / 1.0;
+				var padding = 4;
+				if( oldFactor != factor )
+				{
+					for( var i = 0; i < imageElems.length; i++ )
+					{
+						imageElems[i].style.width = (Math.floor(innerWidth / factor)) - padding + 'px';//(100 / factor) + '%';
+						imageElems[i].style.height = (Math.floor(innerHeight / factor)) - padding + 'px';//(100 / factor) + '%';
+					}
+				}
+
+				img.style.width =  (Math.floor(innerWidth / factor)) - padding + 'px';//(100 / factor) + '%';
+				img.style.height = (Math.floor(innerHeight / factor)) - padding + 'px';//(100 / factor) + '%';
+
+				if( victim )
+				{
+					victim.parentNode.insertBefore(img, victim);
+					victim.parentNode.removeChild(victim);
+				}
+				//else
+				//	imagesContainer.appendChild(img);
+			}
+
+			function onImageLoaded(e)
+			{
+				var image = e.currentTarget;
+				image.state = 1;
+				addImage(e.currentTarget);
+			}
+
+			function onImageError(e)
+			{
+				//console.log(e);
+				var image = e.currentTarget;
+				image.state = -1;
+
+				//var victim = imagesContainer.querySelector("img[itemId=\"" + image.getAttribute('itemId') + "\"], video[itemId=\"" + image.getAttribute('itemId') + "\"]");
+				var victim = imagesContainer.querySelector("img[itemId=\"" + image.getAttribute('itemId') + "\"]");
+				if( victim ) {
+					victim.src = 'brokenicon.png';
+				}
+				else {
+					// probably a video. do nothing, for now.
+				}
+			}
+
+			function addLoadingImage(itemId, url)
+			{
+				var loadingImage = new Image();
+				loadingImage.style.cssText = "margin: 2px;";
+				loadingImage.src = 'loading.gif';
+				loadingImage.setAttribute('itemId', itemId);
+				imagesContainer.appendChild(loadingImage);
+
+				var oldFactor = factor;
+				var imageElems = imagesContainer.querySelectorAll('img, video');
+
+				factor = Math.ceil(Math.sqrt(imageElems.length + 1)) / 1.0;
+
+				if( oldFactor != factor )
+				{
+					for( var i = 0; i < imageElems.length; i++ )
+					{
+						imageElems[i].style.width = (Math.floor(innerWidth / factor)) - 4 + 'px';
+						imageElems[i].style.height = (Math.floor(innerHeight / factor)) - 4 + 'px';
+					}
+				}
+
+				loadingImage.style.width =  (Math.floor(innerWidth / factor)) - 4 + 'px';
+				loadingImage.style.height = (Math.floor(innerHeight / factor)) - 4 + 'px';
+			}
+
+			function addUrl(itemId, url)
+			{
+/*
+//https://stackoverflow.com/questions/11792498/how-do-i-add-new-video-entirely-from-javascript
+obj = document.createElement('video');
+$(obj).attr('id', 'example_video_test');
+$(obj).attr('class', 'video-js vjs-default-skin');
+$(obj).attr('width', '640');
+$(obj).attr('data-height', '264');
+$(obj).attr('controls', ' ');
+$(obj).attr('poster', 'http://video-js.zencoder.com/oceans-clip.jpg');
+$(obj).attr('preload', 'auto');
+$(obj).attr('data-setup', '{}');
+
+source = document.createElement('source');
+$(source).attr('type', 'video/mp4');
+$(source).attr('src', 'http://video-js.zencoder.com/oceans-clip.mp4');
+*/
+				var mediaElement;
+				var isVideo = (url.indexOf('.mp4') >= 0 || url.indexOf('.webm') >= 0);
+				if( isVideo ) {
+					var video = document.createElement('video');
+					video.style.cssText = "margin: 2px; display: inline-block; object-fit: fill;";
+					video.muted = true;
+					video.autoplay = true;
+					video.loop = true;
+					video.addEventListener('load', onImageLoaded);
+					//video.addEventListener('canplay', onCanPlay);
+					video.addEventListener('error', onImageError);
+					video.src = url;
+					video.state = 0;
+					video.setAttribute('itemId', itemId);
+
+					var source = document.createElement('source');
+					source.type = (url.indexOf('.webm') >= 0) ? 'video/webm' : 'video/mp4';
+					source.src = url;
+					video.appendChild(source);
+					mediaElement = video;
+
+					imagesContainer.appendChild(video);	// because no loading image gets appended for us.
+
+					var oldFactor = factor;
+					var imageElems = imagesContainer.querySelectorAll('img, video');
+					factor = Math.ceil(Math.sqrt(imageElems.length + 1)) / 1.0;
+
+					if( oldFactor != factor )
+					{
+						for( var i = 0; i < imageElems.length; i++ )
+						{
+							imageElems[i].style.width = (Math.floor(innerWidth / factor)) - 4 + 'px';
+							imageElems[i].style.height = (Math.floor(innerHeight / factor)) - 4 + 'px';
+						}
+					}
+
+					video.style.width =  (Math.floor(innerWidth / factor)) - 4 + 'px';
+					video.style.height = (Math.floor(innerHeight / factor)) - 4 + 'px';
+					
+				}
+				else {
+					// Add in a LOADING placeholder image right away.
+					addLoadingImage(itemId, url);
+
+					var image = new Image();
+					image.style.cssText = "margin: 2px;";//"border: 2px solid lime;"; //"margin: 1px;";//"position: relative;";
+					image.addEventListener('load', onImageLoaded);
+					image.addEventListener('error', onImageError);
+					image.src = url;
+					image.state = 0;
+					image.setAttribute('itemId', itemId);
+					mediaElement = image;
+				}
+
+				//var elems = imagesContainer.querySelectorAll('img, video');
+				var elems = imagesContainer.querySelectorAll('img');
+				var elems2 = imagesContainer.querySelectorAll('video');
+				elems = elems.concat(elems2);
+				document.title = "Animating Images (" + elems.length + ")";
+			}
+/*
+			function cacheCheckImage(fieldName, url)
+			{
+				if( url == "" )
+				{
+					cachedThumbImages[fieldName] = false;
+					onImageChecked();
+					return;
+				}
+
+			var cacheCheckImage = document.createElement('img');
+			cacheCheckImage.style.cssText = 'display: none;';
+			document.body.appendChild(cacheCheckImage);
+			cacheCheckImage.field = fieldName;
+			cacheCheckImage.url = url;
+			cacheCheckImage.addEventListener('error', function(e)
+			{
+			cachedThumbImages[this.field] = false;
+			onImageChecked();
+			this.parentNode.removeChild(this);
+			}.bind(cacheCheckImage));
+			cacheCheckImage.addEventListener('load', function(e)
+			{
+			cachedThumbImages[this.field] = true;
+			onImageChecked();
+			this.parentNode.removeChild(this);
+			}.bind(cacheCheckImage));
+			cacheCheckImage.src = url;
+			}
+*/
+//std::string code = std::string(VarArgs("OnItemAdded(0, %u, \"itemId\"file")) + std::string("\", \"") + g_pAnarchyManager->encodeURIComponent(pItemKV->GetString("screen")) + std::string("\", \"") + g_pAnarchyManager->encodeURIComponent(pItemKV->GetString("marquee")) + std::string("\", \"") + g_pAnarchyManager->encodeURIComponent(pItemKV->GetString("preview")) + std::string("\", \"") + g_pAnarchyManager->encodeURIComponent(pItemKV->GetString("stream")) + std::string("\");");
+
+			function OnItemAdded(mp4sEnabled_in, index, itemId, file, screen, marquee, preview, stream)
+			{
+				var mp4sEnabled = (mp4sEnabled_in == '1');//true;
+				//console.log(file);
+				//addUrl(itemId, decodeURIComponent(file), decodeURIComponent(screen), decodeURIComponent(marquee), decodeURIComponent(preview));
+				//addUrl(itemId, decodeURIComponent(file));
+				var fileVal = (file) ? decodeURIComponent(file) : null;
+				var screenVal = (screen) ? decodeURIComponent(screen) : null;
+				var previewVal = (preview) ? decodeURIComponent(preview) : null;
+				var marqueeVal = (marquee) ? decodeURIComponent(marquee) : null;
+				var streamVal = (stream) ? decodeURIComponent(stream) : null;
+
+				// FOR NOW: Just make a guess at which field to use.
+				// TODO: Try in sequence, when 1 failes, try the next.
+				var bFoundOne = false;
+				if( streamVal && (((streamVal.toLowerCase().indexOf('.mp4') == streamVal.length-4 || streamVal.toLowerCase().indexOf('.webm') == streamVal.length-5) && mp4sEnabled) || streamVal.toLowerCase().indexOf('.gif') == streamVal.length-4) ) {
+					addUrl(itemId, streamVal);
+				}
+				else if( previewVal && (((previewVal.toLowerCase().indexOf('.mp4') == previewVal.length-4 || previewVal.toLowerCase().indexOf('.webm') == previewVal.length-5) && mp4sEnabled) || previewVal.toLowerCase().indexOf('.gif') == previewVal.length-4) ) {
+					addUrl(itemId, previewVal);
+				}
+				else if( screenVal && (((screenVal.toLowerCase().indexOf('.mp4') == screenVal.length-4 || screenVal.toLowerCase().indexOf('.webm') == screenVal.length-5) && mp4sEnabled) || screenVal.toLowerCase().indexOf('.gif') == screenVal.length-4) ) {
+					addUrl(itemId, screenVal);
+				}
+				else if( marqueeVal && (((marqueeVal.toLowerCase().indexOf('.mp4') == marqueeVal.length-4 || marqueeVal.toLowerCase().indexOf('.webm') == marqueeVal.length-5) && mp4sEnabled) || marqueeVal.toLowerCase().indexOf('.gif') == marqueeVal.length-4) ) {
+					addUrl(itemId, marqueeVal);
+				}
+				else if( fileVal && (((fileVal.toLowerCase().indexOf('.mp4') == fileVal.length-4 || fileVal.toLowerCase().indexOf('.webm') == fileVal.length-5) && mp4sEnabled) || fileVal.toLowerCase().indexOf('.gif') == fileVal.length-4) ) {
+					addUrl(itemId, fileVal);
+				}
+				else {
+					addUrl(itemId, fileVal);
+				}
+			}
+
+			function OnItemRemoved(itemId)
+			{
+				var victims = document.querySelectorAll("img[itemId=\"" + itemId + "\"], video[itemId=\"" + itemId + "\"]");
+				for( var i = 0; i < victims.length; i++ )
+				{
+					var victim = victims[i];
+					victim.parentNode.removeChild(victim);
+				}
+
+				var oldFactor = factor;
+				var imageElems = imagesContainer.querySelectorAll('img, video');
+
+				factor = Math.ceil(Math.sqrt(imageElems.length + 1)) / 1.0;
+
+				if( oldFactor != factor )
+				{
+					for( var i = 0; i < imageElems.length; i++ )
+					{
+						imageElems[i].style.width = (Math.floor(innerWidth / factor)) - 4 + 'px';
+						imageElems[i].style.height = (Math.floor(innerHeight / factor)) - 4 + 'px';
+					}
+				}
+
+				var elems = imagesContainer.querySelectorAll('img, video');
+				document.title = "Animating Images (" + elems.length + ")";
+				//console.log(file);
+				//addUrl(itemId, decodeURIComponent(file));
+			}
+
+			var testUrlsToAdd = [
+				"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/items/976310/0e8f415f5710fa0368ff4067312faa32293591af.png",
+				"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/items/105600/81a5deabbd5da0d668b046faa2455333771e4eb6.png",//];/*,
+				"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/items/730/48517747604eaad387c6d54729c5affa0c442d8a.png",
+				"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/items/730/c81eec46e75c35bcd996ae2621d124bdcfa5589d.png",
+				"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/items/976310/8c3072b1c5ff6abd4dfb648d34460bda29221b0f.png",
+				"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/items/976310/a62a201054928784db72aee2e28e2bd265aefa9a.png",
+				"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/items/976310/4367b9d85db461c4a4613004dba1cab432a5ad12.png",
+				"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/items/730/ae23a0bc8ec6bd6659b993d053a1eb75fd26eb2f.png",
+				"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/items/703080/90afbbf71830fbf84130431ecdb995a8df4b59ca.png",
+				"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/items/703080/531f07cf3587aa3a44486dddb302d09e799bf58e.png",
+				"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/items/546560/b64646bf23f3f020778d6a55fa80621cf7824ee2.png",
+				"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/items/632470/9be48b253b0c70483a6c2603d1b409be3d7c1479.png",
+				"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/items/546560/c4d329f213777171a2e7bd816b6598cf80d002a8.png",
+				"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/items/632470/03a1637604520006641a7275bb411814a15982df.png",
+				"https://media0.giphy.com/media/xT9IgN8YKRhByRBzMI/giphy.gif?cid=ecf05e47sfh27qsec4mxe3nq9wuxxtx7gm0b40m1rh0y8aos&rid=giphy.gif",
+				"https://media3.giphy.com/media/26FPKhUtNG3TW74f6/giphy.gif?cid=ecf05e47lzciwamb0kf6si5xtdwlhg9jdtqwbywgh8wfcz6y&rid=giphy.gif"
+			];//*/
+/*
+			var currentTest = -1;
+			var testInterval = setInterval(function()
+			{
+				currentTest++;
+				if( currentTest < testUrlsToAdd.length )
+				{
+					addUrl(testUrlsToAdd[currentTest], testUrlsToAdd[currentTest]);
+				}
+				else
+				{
+					clearInterval(testInterval);
+				}
+			}, 1000);
+*/
+
+			/*for( var i = 0; i < imageUrls.length; i++ )
+			{
+				var image = new Image();
+				image.addEventListener('load', onImageLoaded);
+				image.addEventListener('error', onImageError);
+				image.src = imageUrls[i];
+			}*/
+
+			//console.log(document.body.offsetWidth);
+
+			//setTimeout(function()
+			//{
+				alert('aai_readynow');
+			//}, 1000);
+		</script>
+	</body>
+</html>

@@ -3586,6 +3586,45 @@ ArcadeHud.prototype.createTile = function(item, tilesContainer, mode, searchText
 	if( mode == 'items' )
 	{
 		additionalHelpText = item.file;
+
+		/*if( item.info ) {
+			var createdString = '';
+			var modifiedString = '';
+
+
+			if( item.info.modified ) {
+				var modified = new Date(item.info.modified * 1000);
+				var year = modified.getFullYear();
+				var month = modified.getMonth() + 1;
+				var day = modified.getDate();
+				var hours = modified.getHours();
+				var minutes = modified.getMinutes();
+				modifiedString = 'Modified: ' + month + '/' + day + '/' + year;
+			}
+
+			if( item.info.created ) {
+				var created = new Date(item.info.created * 1000);
+				var year = created.getFullYear();
+				var month = created.getMonth() + 1;
+				var day = created.getDate();
+				var hours = created.getHours();
+				var minutes = created.getMinutes();
+				createdString = 'Created: ' + month + '/' + day + '/' + year;
+			}
+
+			helpText = item.title;
+
+			if( modifiedString != '' ) {
+				helpText += '\\n' + modifiedString;
+			}
+
+			if( createdString != '' ) {
+				helpText += '\\n' + createdString;
+			}
+			//helpText = item.title + '\\n' + item.file + '\\n' + createdString;
+			//additionalHelpText += "<br />";
+			//additionalHelpText += item.info.created;
+		}*/
 	}
 	else if( mode == 'maps' )
 	{
@@ -4852,8 +4891,18 @@ ArcadeHud.prototype.addHelpMessage = function(text, additionalHelpText)
 			helpText.innerHTML = text;
 		else
 		{
-			var helpTextNode = document.createTextNode(text);
-			helpText.appendChild(helpTextNode);
+			//var helpTextNode = document.createTextNode(text);
+			//helpText.appendChild(helpTextNode);
+
+			var lines = text.split('\\n');
+			for( var i = 0; i < lines.length; i++ ) {
+				var line = lines[i];
+				var helpTextNode = document.createTextNode(line);
+				helpText.appendChild(helpTextNode);
+				if (line !== lines[lines.length - 1]) {
+					helpText.appendChild(document.createElement('br'));
+				}
+			}
 		}
 		this.helpElem.insertBefore(helpText, this.helpElem.firstChild);
 
@@ -6898,6 +6947,27 @@ ArcadeHud.prototype.onGameSchemaFetched = function()
 	if( typeof window.onGameSchemaFetched === "function" )
 		window.onGameSchemaFetched(achievements);
 };
+
+ArcadeHud.prototype.onAIChatBotResponse = function(response)
+{
+	if( window.onAIChatBotResponse ) {
+		window.onAIChatBotResponse(response);
+	}
+}
+
+ArcadeHud.prototype.onAIChatBotSpeakStart = function(response)
+{
+	if( window.onAIChatBotSpeakStart ) {
+		window.onAIChatBotSpeakStart(response);
+	}
+}
+
+ArcadeHud.prototype.onAIChatBotSpeakEnd = function(response)
+{
+	if( window.onAIChatBotSpeakEnd ) {
+		window.onAIChatBotSpeakEnd(response);
+	}
+}
 
 ArcadeHud.prototype.onDOMGot = function(url, response)
 {

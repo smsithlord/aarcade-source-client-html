@@ -551,6 +551,8 @@
 			var styleHax;
 			var haxStylesheet;
 
+			var universesDropDown = null;
+
 			var thumbupIconHTML = arcadeHud.generateIconHTML("thumbupicon.png", 24, 24, "aaThemeColorOneColor");
 			var thumbdownIconHTML = arcadeHud.generateIconHTML("thumbdownicon.png", 24, 24, "aaThemeColorOneColor");
 			//var noeyeIconHTML = arcadeHud.generateIconHTML("noeye.png", 24, 24, "aaTextColorOneColor");
@@ -1065,6 +1067,72 @@
 
 				if( !doNotAdd && ownerAvatar != "" )
 				{
+					if( !universesDropDown ) {
+						universesDropDown = document.querySelector('#universesDropDown');
+						universesDropDown.addEventListener('change', function(){
+							console.log(universesDropDown.value);
+
+							var selectedOption = universesDropDown.options[universesDropDown.selectedIndex];
+
+
+							var selectedUniverseElem = document.querySelector(".selectedUniverse");
+							if( selectedUniverseElem == this )
+							{
+								selectedOption.classList.remove("selectedUniverse");
+
+								if( lastRandoServersTableClassName != "" )
+								{
+									serversTable.classList.remove(lastRandoServersTableClassName);
+									lastRandoServersTableClassName = "";
+								}
+								return;
+							}
+
+							if( !!selectedUniverseElem )
+							{
+								selectedUniverseElem.classList.remove("selectedUniverse");
+
+								if( lastRandoServersTableClassName != "" )
+								{
+									serversTable.classList.remove(lastRandoServersTableClassName);
+									lastRandoServersTableClassName = "";
+								}
+							}
+
+							selectedOption.classList.add("selectedUniverse");
+
+							// prep the style sheet
+							if( !!!styleHax )
+							{
+								styleHax = document.createElement("style");
+								styleHax.appendChild(document.createTextNode(""));
+								document.head.appendChild(styleHax);
+								haxStylesheet = styleHax.sheet;
+							}
+
+							if( universesDropDown.value != '' )
+							{
+								var randoClassName = "rando" + Math.round(Math.random() * 10.0).toString() + Math.round(Math.random() * 10.0).toString() + Math.round(Math.random() * 10.0).toString() + Math.round(Math.random() * 10.0).toString();
+								//haxStylesheet.insertRule("." + randoClassName + " .serverRow:not([ownerAvatar=\"" + selectedOption.universe.ownerAvatar + "\"]) { display: none; }");
+								haxStylesheet.insertRule("." + randoClassName + " .serverRow:not([universeId=\"" + universesDropDown.value + "\"]) { display: none; }");
+
+								serversTable.classList.add(randoClassName);
+								lastRandoServersTableClassName = randoClassName;
+							}
+						});
+					}
+
+					var hasUniverse = false;
+					for( var i = 0; i < universesDropDown.options.length; i++ ) {
+						if( universesDropDown.options[i].value === universeId ) {
+							hasUniverse = true;
+							break;
+						}
+					}
+
+
+
+					row.setAttribute('universeId', universeId);
 					row.setAttribute("ownerAvatar", ownerAvatar);
 					if( universeStuffElem.style.display != "block" )
 						universeStuffElem.style.display = "block";
@@ -1095,6 +1163,21 @@
 						hasNew: hasNew,
 						availableOnCloud: availableOnCloud
 					};
+
+
+
+
+					if( !hasUniverse ) {
+						var option = document.createElement('option');
+						option.value = universeId;
+						option.text = author;
+						option.universe = lobbyEntry;
+						universesDropDown.appendChild(option);
+					}
+
+
+
+
 					addUniverseEntry.call(null, lobbyEntry);
 				}
 			}
@@ -2267,7 +2350,12 @@
 
 			<div id="universeStuff" style="display: none;">
 				<div id="universeOwnerNameContainer" class="aaTitleTextSizeFontSize aaTextColorTwoColor helpText" help="The name of the universe owner.">Select a Universe</div>
-				<div id="universeOwnersContainer" class="aaScrollBars"></div>
+				<center>
+					<div>
+						<select id="universesDropDown"><option value="">SHOW ALL</option></select>
+					</div>
+				</center>
+				<div id="universeOwnersContainer" class="aaScrollBars" style="display: none;"></div>
 				<!--div id="universeContainer"></div-->
 			</div>
 

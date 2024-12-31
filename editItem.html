@@ -47,6 +47,9 @@
 		</style>
 		<!--<script src="asset://ui/stickers.js"></script>-->
 		<script>
+			//var id = arcadeHud.getParameterByName("id");
+			//console.log(id);
+
 			var g_allStickers;
 
 			function requestGameAchievements(appId)
@@ -116,9 +119,11 @@
 		<script>
 			var id = arcadeHud.getParameterByName("id");
 			var item = aaapi.cmdEx("getLibraryItem", id);
+			
 			//var keys = Object.keys(item);
+			//console.log(JSON.stringify(Object.keys(item.info)));
+			//console.log(JSON.stringify(item.info));
 
-			//console.log(JSON.stringify(Object.keys(item)));
 			var g_steamAppId = (!isNaN(parseInt(item.file))) ? item.file : "";
 		</script>
 	</head>

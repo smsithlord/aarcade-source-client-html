@@ -177,6 +177,10 @@
 			{
 				width: 400px;
 			}
+
+			.petKeyValueTable * {
+				font-size:  10px;
+			}
 		</style>
 	</head>
 	<body>
@@ -306,13 +310,18 @@
 					}*/
 				};
 
-			var petPresets = localStorage.getItem("petPresets");
+			/*var petPresets = localStorage.getItem("petPresets");
 			if( !!petPresets )
 				petPresets = JSON.parse(petPresets);
 			else
 				petPresets = {
-				};
-
+				};*/
+function getShortFilenameFromString(input) {
+    var lastSlash = Math.max(input.lastIndexOf('/'), input.lastIndexOf('\\'));
+    var afterLastSlash = input.slice(lastSlash + 1);
+    var lastPeriod = afterLastSlash.lastIndexOf('.');
+    return lastPeriod !== -1 ? afterLastSlash.slice(0, lastPeriod) : afterLastSlash;
+}
 			var petReady = false;
 			var vehicleReady = false;
 			function onChangeCallback(tabId)
@@ -346,34 +355,23 @@
 						}
 					}
 				}
-				else if( tabId == "pet" && !petReady )
+				/*else if( tabId == "pet" && !petReady )
 				{
 					petReady = true;
+					console.log('prep pet menu');
 
-					var foundActive = false;
+					//var allPets = aaapi.cmdEx("getAllPetsList");
+					var allPetsList = ["models\\pets\\hackerhaley\\pet_hackerhaley.mdl"];
 
-					var compareFile = aaapi.cmdEx('getConVarValue', 'air_boat_model');
-					var petsContainer = document.querySelector('#petsContainer');
-					var preset, modelId, modelEntry, tile;
-					for( var x in petPresets )
-					{
-						preset = petPresets[x];
-
-						if( x == 'default' )
-							continue;
-
-						modelEntry = aaapi.cmdEx("getLibraryModel", x);
-
-						var tile = arcadeHud.createTile(modelEntry, petsContainer, "modelpreview", "", onPetSpawnClick, 128, 64);
-
-						if( tile.item.platforms[arcadeHud.platformId].file == compareFile )
-						{
-							tile.classList.add('activePetTile');
-							tile.classList.add('aaThemeColorOneBorderColor');
-							foundActive = true;
-						}
+					var container = document.querySelector('#petsList');
+					for( var i = 0; i < allPetsList.length; i++ ) {
+						var pet = allPetsList[i];
+						var option = document.createElement('option');
+						option.value = pet;
+						option.text = getShortFilenameFromString(pet);
+						container.appendChild(option);
 					}
-				}
+				}*/
 			}
 
 			function onVehicleSpawnClick(tile)
@@ -605,11 +603,14 @@
 			</table>
 		</div>
 
-		<!--div class="aaTabContent aaThemeColorTwoHighBackgroundColor aaThemeColorTwoLowBorderColor" tabid="pet">
+		<!--div class="aaTabContent aaThemeColorTwoHighBackgroundColor aaThemeColorTwoLowBorderColor" style="max-height: 600px; overflow-y: auto;" tabid="pet">
 			<center>
-				<div id="petsContainer" style="white-space: nowrap; max-width: 1000px; overflow-x: auto; overflow-y: hidden;" class="aaScrollBars"></div>
+				<font class="aaThemeColorOneColor aaTitleText aaTitleTextSizeFontSize">Pets</font><br /><br />
+				<select id="petsList" style="font-size: 20px; margin-bottom: 10px;">
+					<option value="">- select a pet -</option>
+				</select>
+				<table class="aaKeyValueTable petKeyValueTable" cellspacing="0"></table>
 			</center>
-			<table class="aaKeyValueTable" style="width: 100%;" cellspacing="0"></table>
 			<br />
 			<table width="100%">
 				<tr>
@@ -1030,6 +1031,24 @@
 						{
 							this.value = val;
 							aaapi.cmd("setStartWithWindows", this.value);
+						}
+					},
+					"petpersistence":
+					{
+						"title": "Pet Persistence",
+						"type": "toggle",
+						"help": "Automatically save/restore all pets in each world.",
+						"valueTitles": {"0": "Disabled", "1": "Enabled"},
+						"value": null,
+						"getValue": function()
+						{
+							var val = aaapi.cmdEx("getConVarValue", "pet_persistence");
+							this.value = val;
+						},
+						"setValue": function(val)
+						{
+							this.value = val;
+							aaapi.cmd("consoleCommand", "pet_persistence " + this.value);
 						}
 					}
 				},
@@ -2602,33 +2621,424 @@
 				},
 				"pet":
 				{
-				/*var forward = "run";//"menu_walk";
-				var idle = "idle";//"idle_all_01";
-				var scale = 1.0;
-				var rot = "0 0 0";
-				var pos = "0 0 0";
-				var near = 50.0;
-				var far = 150.0;
-				var speed = 100.0;*/
-					"forward":
+					"name":
 					{
-						"title": "Forward Anim Sequence Name",
-						"type": "select",
-						"help": "Animation sequence name to use when moving forward.",
-						"valueTitles": {"0": "Placeholder Value 0", "1": "Placeholder Value 1"},
+						"title": "Pet Name",
+						"type": "text",
+						"help": "You can name it whatever you want. This is the name it appears as in menus.",
+						"valueTitles": {"placeholder": "ex. Rex"},
 						"value": null,
 						"getValue": function()
 						{
-							//var val = aaapi.cmdEx("getConVarValue", "loop_local_videos");
-							this.value = "0";
+							var val = "";//aaapi.cmdEx("getConVarValue", "interactive_directory_url");
+							console.log("TODO: pet getValue");
+							this.value = val;
 						},
 						"setValue": function(val)
 						{
-							//aaapi.cmd("consoleCommand", "loop_local_videos " + val);
-							/*this.value = val;
-							aaapi.cmd("consoleCommand", "vehicle_eye_offset " + this.value + " " + categories.vehicle.vehiclecamy.value + " " + categories.vehicle.vehiclecamz.value + ";");
-							saveVehiclePresetState();*/
-							console.log('save something...');
+							this.value = val;
+							console.log("TODO: pet setValue");
+							//aaapi.cmd("consoleCommand", "interactive_directory_url " + this.value);
+						}
+					},
+					"outfit":
+					{
+						"title": "Outfit",
+						"type": "text",
+						"help": "",
+						"valueTitles": {"placeholder": ""},
+						"value": null,
+						"getValue": function()
+						{
+							var val = "";//aaapi.cmdEx("getConVarValue", "interactive_directory_url");
+							console.log("TODO: pet getValue");
+							this.value = val;
+						},
+						"setValue": function(val)
+						{
+							this.value = val;
+							console.log("TODO: pet setValue");
+							//aaapi.cmd("consoleCommand", "interactive_directory_url " + this.value);
+						}
+					},
+					"model":
+					{
+						"title": "Model",
+						"type": "text",
+						"help": "",
+						"valueTitles": {"placeholder": ""},
+						"value": null,
+						"getValue": function()
+						{
+							var val = "";//aaapi.cmdEx("getConVarValue", "interactive_directory_url");
+							console.log("TODO: pet getValue");
+							this.value = val;
+						},
+						"setValue": function(val)
+						{
+							this.value = val;
+							console.log("TODO: pet setValue");
+							//aaapi.cmd("consoleCommand", "interactive_directory_url " + this.value);
+						}
+					},
+					"pos":
+					{
+						"title": "Position",
+						"type": "text",
+						"help": "",
+						"valueTitles": {"placeholder": ""},
+						"value": null,
+						"getValue": function()
+						{
+							var val = "";//aaapi.cmdEx("getConVarValue", "interactive_directory_url");
+							console.log("TODO: pet getValue");
+							this.value = val;
+						},
+						"setValue": function(val)
+						{
+							this.value = val;
+							console.log("TODO: pet setValue");
+							//aaapi.cmd("consoleCommand", "interactive_directory_url " + this.value);
+						}
+					},
+					"rot":
+					{
+						"title": "Rotation",
+						"type": "text",
+						"help": "",
+						"valueTitles": {"placeholder": ""},
+						"value": null,
+						"getValue": function()
+						{
+							var val = "";//aaapi.cmdEx("getConVarValue", "interactive_directory_url");
+							console.log("TODO: pet getValue");
+							this.value = val;
+						},
+						"setValue": function(val)
+						{
+							this.value = val;
+							console.log("TODO: pet setValue");
+							//aaapi.cmd("consoleCommand", "interactive_directory_url " + this.value);
+						}
+					},
+					"scale":
+					{
+						"title": "Scale",
+						"type": "text",
+						"help": "",
+						"valueTitles": {"placeholder": ""},
+						"value": null,
+						"getValue": function()
+						{
+							var val = "";//aaapi.cmdEx("getConVarValue", "interactive_directory_url");
+							console.log("TODO: pet getValue");
+							this.value = val;
+						},
+						"setValue": function(val)
+						{
+							this.value = val;
+							console.log("TODO: pet setValue");
+							//aaapi.cmd("consoleCommand", "interactive_directory_url " + this.value);
+						}
+					},
+					"idle":
+					{
+						"title": "Idle",
+						"type": "text",
+						"help": "",
+						"valueTitles": {"placeholder": ""},
+						"value": null,
+						"getValue": function()
+						{
+							var val = "";//aaapi.cmdEx("getConVarValue", "interactive_directory_url");
+							console.log("TODO: pet getValue");
+							this.value = val;
+						},
+						"setValue": function(val)
+						{
+							this.value = val;
+							console.log("TODO: pet setValue");
+							//aaapi.cmd("consoleCommand", "interactive_directory_url " + this.value);
+						}
+					},
+					"run":
+					{
+						"title": "Run",
+						"type": "text",
+						"help": "Animation sequence name to use when moving forward.",
+						"valueTitles": {"placeholder": "ex. run"},
+						"value": null,
+						"getValue": function()
+						{
+							var val = "";//aaapi.cmdEx("getConVarValue", "interactive_directory_url");
+							console.log("TODO: pet getValue");
+							this.value = val;
+						},
+						"setValue": function(val)
+						{
+							this.value = val;
+							console.log("TODO: pet setValue");
+							//aaapi.cmd("consoleCommand", "interactive_directory_url " + this.value);
+						}
+					},
+					"walk":
+					{
+						"title": "Walk",
+						"type": "text",
+						"help": "",
+						"valueTitles": {"placeholder": ""},
+						"value": null,
+						"getValue": function()
+						{
+							var val = "";//aaapi.cmdEx("getConVarValue", "interactive_directory_url");
+							console.log("TODO: pet getValue");
+							this.value = val;
+						},
+						"setValue": function(val)
+						{
+							this.value = val;
+							console.log("TODO: pet setValue");
+							//aaapi.cmd("consoleCommand", "interactive_directory_url " + this.value);
+						}
+					},
+					"fall":
+					{
+						"title": "Fall",
+						"type": "text",
+						"help": "",
+						"valueTitles": {"placeholder": ""},
+						"value": null,
+						"getValue": function()
+						{
+							var val = "";//aaapi.cmdEx("getConVarValue", "interactive_directory_url");
+							console.log("TODO: pet getValue");
+							this.value = val;
+						},
+						"setValue": function(val)
+						{
+							this.value = val;
+							console.log("TODO: pet setValue");
+							//aaapi.cmd("consoleCommand", "interactive_directory_url " + this.value);
+						}
+					},
+					"dress":
+					{
+						"title": "Dress",
+						"type": "text",
+						"help": "",
+						"valueTitles": {"placeholder": ""},
+						"value": null,
+						"getValue": function()
+						{
+							var val = "";//aaapi.cmdEx("getConVarValue", "interactive_directory_url");
+							console.log("TODO: pet getValue");
+							this.value = val;
+						},
+						"setValue": function(val)
+						{
+							this.value = val;
+							console.log("TODO: pet setValue");
+							//aaapi.cmd("consoleCommand", "interactive_directory_url " + this.value);
+						}
+					},
+					"wave":
+					{
+						"title": "Wave",
+						"type": "text",
+						"help": "",
+						"valueTitles": {"placeholder": ""},
+						"value": null,
+						"getValue": function()
+						{
+							var val = "";//aaapi.cmdEx("getConVarValue", "interactive_directory_url");
+							console.log("TODO: pet getValue");
+							this.value = val;
+						},
+						"setValue": function(val)
+						{
+							this.value = val;
+							console.log("TODO: pet setValue");
+							//aaapi.cmd("consoleCommand", "interactive_directory_url " + this.value);
+						}
+					},
+					"talk":
+					{
+						"title": "Talk",
+						"type": "text",
+						"help": "",
+						"valueTitles": {"placeholder": ""},
+						"value": null,
+						"getValue": function()
+						{
+							var val = "";//aaapi.cmdEx("getConVarValue", "interactive_directory_url");
+							console.log("TODO: pet getValue");
+							this.value = val;
+						},
+						"setValue": function(val)
+						{
+							this.value = val;
+							console.log("TODO: pet setValue");
+							//aaapi.cmd("consoleCommand", "interactive_directory_url " + this.value);
+						}
+					},
+					"dance":
+					{
+						"title": "Dance",
+						"type": "text",
+						"help": "",
+						"valueTitles": {"placeholder": ""},
+						"value": null,
+						"getValue": function()
+						{
+							var val = "";//aaapi.cmdEx("getConVarValue", "interactive_directory_url");
+							console.log("TODO: pet getValue");
+							this.value = val;
+						},
+						"setValue": function(val)
+						{
+							this.value = val;
+							console.log("TODO: pet setValue");
+							//aaapi.cmd("consoleCommand", "interactive_directory_url " + this.value);
+						}
+					},
+					"sit":
+					{
+						"title": "Sit",
+						"type": "text",
+						"help": "",
+						"valueTitles": {"placeholder": ""},
+						"value": null,
+						"getValue": function()
+						{
+							var val = "";//aaapi.cmdEx("getConVarValue", "interactive_directory_url");
+							console.log("TODO: pet getValue");
+							this.value = val;
+						},
+						"setValue": function(val)
+						{
+							this.value = val;
+							console.log("TODO: pet setValue");
+							//aaapi.cmd("consoleCommand", "interactive_directory_url " + this.value);
+						}
+					},
+					"sitfloor":
+					{
+						"title": "Sit on Floor",
+						"type": "text",
+						"help": "",
+						"valueTitles": {"placeholder": ""},
+						"value": null,
+						"getValue": function()
+						{
+							var val = "";//aaapi.cmdEx("getConVarValue", "interactive_directory_url");
+							console.log("TODO: pet getValue");
+							this.value = val;
+						},
+						"setValue": function(val)
+						{
+							this.value = val;
+							console.log("TODO: pet setValue");
+							//aaapi.cmd("consoleCommand", "interactive_directory_url " + this.value);
+						}
+					},
+					"runspeed":
+					{
+						"title": "Run Speed",
+						"type": "text",
+						"help": "",
+						"valueTitles": {"placeholder": ""},
+						"value": null,
+						"getValue": function()
+						{
+							var val = "";//aaapi.cmdEx("getConVarValue", "interactive_directory_url");
+							console.log("TODO: pet getValue");
+							this.value = val;
+						},
+						"setValue": function(val)
+						{
+							this.value = val;
+							console.log("TODO: pet setValue");
+							//aaapi.cmd("consoleCommand", "interactive_directory_url " + this.value);
+						}
+					},
+					"walkspeed":
+					{
+						"title": "Walk Speed",
+						"type": "text",
+						"help": "",
+						"valueTitles": {"placeholder": ""},
+						"value": null,
+						"getValue": function()
+						{
+							var val = "";//aaapi.cmdEx("getConVarValue", "interactive_directory_url");
+							console.log("TODO: pet getValue");
+							this.value = val;
+						},
+						"setValue": function(val)
+						{
+							this.value = val;
+							console.log("TODO: pet setValue");
+							//aaapi.cmd("consoleCommand", "interactive_directory_url " + this.value);
+						}
+					},
+					"near":
+					{
+						"title": "Near Distance",
+						"type": "text",
+						"help": "Measured in INCHES. This is how close the pet will stand to you.",
+						"valueTitles": {"placeholder": ""},
+						"value": null,
+						"getValue": function()
+						{
+							var val = "";//aaapi.cmdEx("getConVarValue", "interactive_directory_url");
+							console.log("TODO: pet getValue");
+							this.value = val;
+						},
+						"setValue": function(val)
+						{
+							this.value = val;
+							console.log("TODO: pet setValue");
+							//aaapi.cmd("consoleCommand", "interactive_directory_url " + this.value);
+						}
+					},
+					"far":
+					{
+						"title": "Far",
+						"type": "text",
+						"help": "Multiple of NEAR value. For example, set it to 2.0 to make the FAR distance TWICE as far as the NEAR distance.",
+						"valueTitles": {"placeholder": ""},
+						"value": null,
+						"getValue": function()
+						{
+							var val = "";//aaapi.cmdEx("getConVarValue", "interactive_directory_url");
+							console.log("TODO: pet getValue");
+							this.value = val;
+						},
+						"setValue": function(val)
+						{
+							this.value = val;
+							console.log("TODO: pet setValue");
+							//aaapi.cmd("consoleCommand", "interactive_directory_url " + this.value);
+						}
+					},
+					"wander":
+					{
+						"title": "Wander",
+						"type": "text",
+						"help": "Multiple of FAR value. For example, set it to 2.0 to allow the pet to wander x2 whatever the FAR distance is calculated to be.",
+						"valueTitles": {"placeholder": ""},
+						"value": null,
+						"getValue": function()
+						{
+							var val = "";//aaapi.cmdEx("getConVarValue", "interactive_directory_url");
+							console.log("TODO: pet getValue");
+							this.value = val;
+						},
+						"setValue": function(val)
+						{
+							this.value = val;
+							console.log("TODO: pet setValue");
+							//aaapi.cmd("consoleCommand", "interactive_directory_url " + this.value);
 						}
 					}
 				},
@@ -3188,7 +3598,7 @@
 						"setValue": function(val)
 						{
 							this.value = val;
-							aaapi.cmd("consoleCommand", "interactive_directory_url " + this.value);
+							aaapi.cmd("consoleCommand", "interactive_directory_url \"" + this.value + "\"");
 						}
 					},
 					"startupWallpaper":

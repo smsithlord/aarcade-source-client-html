@@ -1,0 +1,276 @@
+<html>
+	<head>
+		<title>Pet Menu</title>
+		<link rel="stylesheet" type="text/css" href="asset://ui/hud.css"></link>
+		<script src="asset://ui/hud.js"></script>
+
+		<script>
+			var petIndex = arcadeHud.getParameterByName("petEntity");
+			if( petIndex )
+			{
+				petIndex = Number(petIndex);
+			}
+		</script>
+
+		<style type="text/css">
+			body, html {
+				width:  100%;
+				height:  100%;
+				overflow:  hidden;
+			}
+
+			.petFormInputContainer {
+				background-color:  rgba(0, 0, 0, 0.9);
+				border-radius:  12px;
+				padding:  4px;
+				margin:  4px;
+			}
+
+			.petInput {
+				font-size: 20px;
+				padding: 4px;
+				padding-left: 32px;
+				padding-right: 32px;
+				width:  180px;
+			}
+
+			.petInputSelect {
+				font-size: 20px;
+				width:  180px;
+				padding: 4px;
+				border-radius:  4px;
+				background-color:  rgb(220, 220, 220);
+			}
+
+			.petInputSelect:hover {
+				background-color:  rgb(220, 220, 255);
+				border-color:  rgb(150, 150, 255);
+			}
+
+			.petTitle {
+				font-size:  32px;
+				font-weight:  900;
+				letter-spacing:  0.1em;
+				font-family: Arial;
+				text-transform:  uppercase;
+				text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+			}
+
+			.okButton {
+				width: 50%;
+				border: 0;
+				background-color: rgba(0, 0, 0, 0.9);
+				border-radius: 8px;
+				padding: 4px;
+				padding-top: 8px;
+				padding-bottom: 8px;
+				color: #ccc;
+				letter-spacing: 0.1em;
+				border: 2px solid transparent;
+				font-weight: bold;
+			}
+
+			.okButton:hover {
+				border-color:  #ccc;
+				color:  #fff;
+			}
+		</style>
+	</head>
+	<body>
+		<table style="width: 100%; height: 100%; position: absolute; top:  0; left:  0;">
+			<tr>
+				<td align="center" valign="bottom">
+					<div style="margin-bottom: 5%; width: 300px;">
+						<div>
+							<div class="petTitle">PET</div>
+						</div>
+						<div class="petFormInputContainer">
+							<table width="100%">
+								<tr>
+									<td width="50" align="center" valign="middle">
+										<script>
+											document.write(arcadeHud.generateIconHTML("runicon.png", 32, 32, "aaTextColorOneColor"));
+										</script>
+									</td>
+									<td align="center" valign="middle">
+										<input type="button" class="petInput" value="Play-As-Pet" onclick="playAsPet();" />
+									</td>
+								</tr>
+							</table>
+						</div>
+						<div class="petFormInputContainer">
+							<table width="100%">
+								<tr>
+									<td width="50" align="center" valign="middle">
+										<script>
+											document.write(arcadeHud.generateIconHTML("trashicon.png", 32, 32, "aaTextColorOneColor"));
+										</script>
+									</td>
+									<td align="center" valign="middle">
+										<input type="button" class="petInput" value="Remove Pet" onclick="removePet();" />
+									</td>
+								</tr>
+							</table>
+						</div>
+						<div class="petFormInputContainer">
+							<table width="100%">
+								<tr>
+									<td width="50" align="center" valign="middle">
+										<script>
+											document.write(arcadeHud.generateIconHTML("outfitsicon.png", 32, 32, "aaTextColorOneColor"));
+										</script>
+									</td>
+									<td align="center" valign="middle">
+										<select id="outfitNamesBox" class="aaTextSizeFontSize petInputSelect" onchange="wearOutfit(this.value);">
+											<option>None</option>
+										</select>
+									</td>
+								</tr>
+							</table>
+						</div>
+						<div class="petFormInputContainer">
+							<table width="100%">
+								<tr>
+									<td width="50" align="center" valign="middle">
+										<script>
+											document.write(arcadeHud.generateIconHTML("behaviorsicon.png", 32, 32, "aaTextColorOneColor"));
+										</script>
+									</td>
+									<td align="center" valign="middle">
+										<select id="petBehaviorList" class="aaTextSizeFontSize petInputSelect" onchange="applyBehavior(this.value);">
+											<option value="0">idle</option>
+											<option value="1">look</option>
+											<option value="2">follow</option>
+										</select>
+									</td>
+								</tr>
+							</table>
+						</div>
+						<div class="petFormInputContainer">
+							<table width="100%">
+								<tr>
+									<td width="50" align="center" valign="middle">
+										<script>
+											document.write(arcadeHud.generateIconHTML("emotesicon.png", 32, 32, "aaTextColorOneColor"));
+										</script>
+									</td>
+									<td align="center" valign="middle">
+										<select id="sequenceNamesBox" class="aaTextSizeFontSize petInputSelect" onchange="playSequence(this.value);"></select>
+									</td>
+								</tr>
+							</table>
+						</div>
+						<div class="petFormInputContainerx">
+							<table width="100%">
+								<tr>
+									<td align="center" valign="middle">
+										<input type="button" value="OK" class="okButton" onclick="aaapi.cmd('deactivateInputMode');" />
+									</td>
+								</tr>
+							</table>
+						</div>
+					</div>
+				</td>
+			</tr>
+		</table>
+
+		<script>
+			function playAsPet() {
+				aaapi.cmd('consoleCommand', 'petplay ' + petIndex + ';');
+				aaapi.cmd('deactivateInputMode');
+			}
+
+			function removePet() {
+				aaapi.cmd('consoleCommand', 'petremove ' + petIndex + ';');
+				aaapi.cmd('deactivateInputMode');
+			}
+
+			function applyBehavior(behaviorValue) {
+				aaapi.cmd('consoleCommand', 'petbehavior ' + behaviorValue + ' ' + petIndex + ';');
+			}
+
+			var pendingOutfitId;
+			function wearOutfit(outfitId) {
+				if( !pendingOutfitId ) {
+					setTimeout(function(){	// because stripping the outfit is not syncronous even from within the C++ :S (because removeobject needs roundtrip to server code)
+						aaapi.cmd('consoleCommand', 'petoutfitload "' + pendingOutfitId + '" ' + petIndex + ';');
+						pendingOutfitId = null;
+					}, 100);
+				}
+				pendingOutfitId = outfitId;
+			}
+
+			function playSequence(sequenceName) {
+				aaapi.cmd('consoleCommand', 'petplayanimraw "' + sequenceName + '" ' + petIndex + ';');
+				aaapi.cmd('deactivateInputMode');
+			}
+
+			var pet = aaapi.cmdEx("getPetByEntityIndex", petIndex);
+			console.log(JSON.stringify(pet));
+
+			// get a short name based on model name
+			var petName = pet.model;
+			var found = petName.lastIndexOf("/");
+			if( found < 0 )
+				found = petName.lastIndexOf("\\");
+			if( found > 0 )
+				petName = petName.substring(found+1);
+			found = petName.lastIndexOf(".");
+			if( found > 0 )
+				petName = petName.substring(0, found);
+			found = petName.indexOf('pet_');	// remove "pet_" from the front.
+			if( found === 0 )
+				petName = petName.substring(4);
+			petName = petName.replace(/_/g, ' ');	// change all _ to spaces.
+
+			var petTitle = document.querySelector('.petTitle');
+			petTitle.innerHTML = petName;
+
+			// initial behavior
+			var petBehaviorList = document.querySelector("#petBehaviorList");
+			petBehaviorList.value = pet.behavior;
+
+			// initial outfits
+			var petOutfits = aaapi.cmdEx('getAllPetOutfits', pet.model);
+			var outfitNamesBox = document.querySelector('#outfitNamesBox');
+			var outfitId, option;
+			for( var i = 0; i < petOutfits.length; i++ ) {
+				outfitId = petOutfits[i];
+				option = document.createElement('option');
+				option.value = outfitId;
+				option.text = outfitId;
+
+				if( outfitId == pet.outfitId )
+					option.selected = true;
+
+				outfitNamesBox.appendChild(option);
+			}
+
+
+			// initial animations
+			if( aaapi.cmdEx("getEntityModelSequenceNames", petIndex) === true )
+			{
+				var sequenceNamesBox = document.querySelector('#sequenceNamesBox');
+				var sequenceList;
+				var randStuff = "r" + Math.round(Math.random() * 10.0).toString() + Math.round(Math.random() * 10.0).toString() + Math.round(Math.random() * 10.0).toString() + Math.round(Math.random() * 10.0).toString();
+				var snapScript = document.createElement("script");
+				snapScript.src = "asset://shots/model_info.js?r=" + randStuff;
+				snapScript.onload = function()
+				{
+					var sequenceName, option;
+					for( var i = 0; i < aa_fetched_model_sequences.length; i++ ) {
+						sequenceName = aa_fetched_model_sequences[i];
+						option = document.createElement('option');
+						if( sequenceName == pet.sequence ) {
+							option.selected = true;
+						}
+						option.value = sequenceName;
+						option.text = sequenceName;
+						sequenceNamesBox.appendChild(option);
+					}
+				};
+				document.getElementsByTagName("head")[0].appendChild(snapScript);
+			}
+		</script>
+	</body>
+</html>

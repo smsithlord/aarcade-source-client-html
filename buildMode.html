@@ -964,9 +964,203 @@
 				display: inline-block;
 				font-size: 24px;
 			}
+
+			.petInputSelect {
+				font-size: 20px;
+				width:  180px;
+				padding: 4px;
+				border-radius:  4px;
+				background-color:  rgb(220, 220, 220);
+			}
+
+			.petInputSelect:hover {
+				background-color:  rgb(220, 220, 255);
+				border-color:  rgb(150, 150, 255);
+			}
+
+			.petStuffTable {
+				display:  none;
+			}
+
+			.petStuffNeeded.petStuffTable {
+				display:  table;
+			}
+
+			.petStuffHidden .petNonHoverHide {
+				display:  none;
+			}
+
+			.petNoBones {
+				font-family:  Arial;
+				font-size:  24px;
+			}
+
+			.petNoBonesCell {
+				display:  none;
+			}
+
+			.petEmptyBones:not(.petStuffHidden) .petNoBonesCell {
+				display:  table-cell;
+			}
+
+			.petEmptyBones .petNonHoverHide {
+				display: none !important;
+			}
 		</style>
 
 		<!--<div id="pageContent">-->
+
+			<script>
+				function attachTo(attachmentName) {
+					//aaapi.cmd("deactivateInputMode");
+					aaapi.cmd("consoleCommand", "dopetattach \"" + attachmentName + "\" 1;");
+					//parseFloat(pitch.value), parseFloat(yaw.value), parseFloat(roll.value));
+				}
+			</script>
+
+			<div style="position: absolute; top:  10px; left:  10px; z-index: 99999;">
+				<table class="petStuffTable petStuffHidden">
+					<tr>
+						<td align="center" valign="middle">
+							<div style="display: inline-block;" class="helpNote" help="Add/update this model to be a PET using current offset & scale." onclick="addOrUpdatePet()">
+								<script>
+									document.write(arcadeHud.generateIconHTML("addavataricon.png", 42, 42, "aaTextColorOneColor"));
+								</script>
+							</div>
+						</td>
+						<td align="center" valign="middle">
+							<div style="display: inline-block;" class="helpNote" help="This object can be attached to your pet's outfit." onclick="document.querySelector('.petStuffTable').classList.toggle('petStuffHidden'); aaapi.cmd('consoleCommand', 'thirdperson');">
+								<script>
+									document.write(arcadeHud.generateIconHTML("addwearicon.png", 42, 42, "aaTextColorOneColor"));
+								</script>
+							</div>
+						</td>
+						<td class="petNonHoverHide">
+							<select id="attachmentNamesBox" class="aaTitleTextSizeFontSize petInputSelect helpNote" help="Choose a bone to attach to."></select>
+						</td>
+						<td class="petNonHoverHide">
+							<div style="display: inline-block;" class="helpNote" help="Attach/detach the object to your pet's outfit. (Outfits can be saved from the PETS TAB.)" onclick="attachTo(document.querySelector('#attachmentNamesBox').value);">
+								<script>
+									document.write(arcadeHud.generateIconHTML("tackicon.png", 42, 42, "aaTextColorOneColor"));
+								</script>
+							</div>
+						</td>
+						<td class="petNoBonesCell">
+							<div class="petNoBones">No attachment bones available.</div>
+						</td>
+					</tr>
+				</table>
+
+				<script>
+					var playAsPetEntityIndex = aaapi.cmdEx('getPlayAsPetEntityIndex');
+					var playAsPetEntityIndexNumber;
+					if( playAsPetEntityIndex == '' )
+						playAsPetEntityIndexNumber == -1;
+					else
+						playAsPetEntityIndexNumber = parseInt(playAsPetEntityIndex);
+
+					window.playAsPetEntityIndexNumber = playAsPetEntityIndexNumber;
+
+					if( playAsPetEntityIndexNumber >= 0 )
+					{
+						var attachmentNamesBox = document.querySelector('#attachmentNamesBox');
+						var attachmentNames = aaapi.cmdEx('getEntityModelAttachmentNames', playAsPetEntityIndexNumber);
+						var attachmentName;
+						if( attachmentNames ) {
+							for( var i = 0; i < attachmentNames.length; i++ )
+							{
+								attachmentName = attachmentNames[i];
+								var option = document.createElement('option');
+								option.text = attachmentName;
+								option.value = attachmentName;
+								attachmentNamesBox.appendChild(option);
+							}
+						}
+						if( !attachmentNames || attachmentNames.length === 0 ) {
+							document.querySelector('.petStuffTable').classList.add('petEmptyBones');
+						}
+						//console.log(JSON.stringify(attachmentNames));
+					}
+				</script>
+
+
+
+
+
+
+				<script>
+					function addOrUpdatePet() {
+						// get current transform info
+						var scaleElem = document.querySelector("input[name='scale']");
+						//var skinElem = document.querySelector("input[name='skin']");
+						var pitchElem = document.querySelector("input[name='pitch']");
+						var yawElem = document.querySelector("input[name='yaw']");
+						var rollElem = document.querySelector("input[name='roll']");
+						var offXElem = document.querySelector("input[name='offX']");
+						var offYElem = document.querySelector("input[name='offY']");
+						var offZElem = document.querySelector("input[name='offZ']");
+						//console.log(scaleElem.value + ' ' + pitchElem.value + ' ' + yawElem.value + ' ' + rollElem.value + ' ' + offXElem.value + ' ' + offYElem.value + ' ' + offZElem.value);
+
+						// save it to a "pets" node in localStorage - it could always be changed to load from a KV later.
+						var existingPets = localStorage.getItem('pets');
+						if( existingPets )
+							existingPets = JSON.parse(existingPets);
+						else
+							existingPets = {};
+
+						var model = aaapi.cmdEx("getLibraryModel", currentModelId);
+						var modelFile = model.platforms[arcadeHud.platformId].file.toLowerCase();
+
+						existingPets[currentModelId] = {
+							name: model.title,
+							scale: scaleElem.value,
+							pos: offXElem.value + ' ' + offYElem.value + ' ' + offZElem.value,
+							rot: pitchElem.value + ' ' + yawElem.value + ' ' + rollElem.value,
+							model: modelFile,
+							walk: 'walk',
+							run: 'run',
+							idle: 'idle',
+							fall: 'fall'
+						};
+						localStorage.setItem('pets', JSON.stringify(existingPets));
+
+						aaapi.cmd('consoleCommand', "petupdate " + window.playAsPetEntityIndexNumber + " scale " + scaleElem.value + "; petupdate " + window.playAsPetEntityIndexNumber + " pos \"" + existingPets[currentModelId].pos + "\"; petupdate " + window.playAsPetEntityIndexNumber + " rot \"" + existingPets[currentModelId].rot + "\"");
+
+						console.log('added pet ' + modelFile);
+					}
+				</script>
+
+
+
+				<!--div class="attachToButton" class="cabCategory" onclick="attachTo('head');" style="font-family:  Arial; display: inline-block; border: 2px solid white; padding: 4px; cursor: pointer; border-radius: 6px; background-color: rgba(0, 0, 0, 0.5);">
+					<img src="itemicon.png" class="helpNote" help="Attach this model to head." style="pointer-events:  none;vertical-align: middle;" /><div style=" padding-left:  4px; padding-right:  4px; display:  inline; vertical-align:  middle; pointer-events:  none;">Attach to head</div>
+				</div>
+				<div class="attachToButton" class="cabCategory" onclick="attachTo('rhand');" style="font-family:  Arial; display: inline-block; border: 2px solid white; padding: 4px; cursor: pointer; border-radius: 6px; background-color: rgba(0, 0, 0, 0.5);">
+					<img src="itemicon.png" class="helpNote" help="Attach this model to rhand." style="pointer-events:  none;vertical-align: middle;" /><div style=" padding-left:  4px; padding-right:  4px; display:  inline; vertical-align:  middle; pointer-events:  none;">Attach to rhand</div>
+				</div>
+				<div class="attachToButton" class="cabCategory" onclick="attachTo('lhand');" style="font-family:  Arial; display: inline-block; border: 2px solid white; padding: 4px; cursor: pointer; border-radius: 6px; background-color: rgba(0, 0, 0, 0.5);">
+					<img src="itemicon.png" class="helpNote" help="Attach this model to lhand." style="pointer-events:  none;vertical-align: middle;" /><div style=" padding-left:  4px; padding-right:  4px; display:  inline; vertical-align:  middle; pointer-events:  none;">Attach to lhand</div>
+				</div>
+				<div class="attachToButton" class="cabCategory" onclick="attachTo('torso');" style="font-family:  Arial; display: inline-block; border: 2px solid white; padding: 4px; cursor: pointer; border-radius: 6px; background-color: rgba(0, 0, 0, 0.5);">
+					<img src="itemicon.png" class="helpNote" help="Attach this model to torso." style="pointer-events:  none;vertical-align: middle;" /><div style=" padding-left:  4px; padding-right:  4px; display:  inline; vertical-align:  middle; pointer-events:  none;">Attach to torso</div>
+				</div>
+				<div class="attachToButton" class="cabCategory" onclick="attachTo('waist');" style="font-family:  Arial; display: inline-block; border: 2px solid white; padding: 4px; cursor: pointer; border-radius: 6px; background-color: rgba(0, 0, 0, 0.5);">
+					<img src="itemicon.png" class="helpNote" help="Attach this model to waist." style="pointer-events:  none;vertical-align: middle;" /><div style=" padding-left:  4px; padding-right:  4px; display:  inline; vertical-align:  middle; pointer-events:  none;">Attach to waist</div>
+				</div>
+				<div class="attachToButton" class="cabCategory" onclick="attachTo('lthigh');" style="font-family:  Arial; display: inline-block; border: 2px solid white; padding: 4px; cursor: pointer; border-radius: 6px; background-color: rgba(0, 0, 0, 0.5);">
+					<img src="itemicon.png" class="helpNote" help="Attach this model to lthigh." style="pointer-events:  none;vertical-align: middle;" /><div style=" padding-left:  4px; padding-right:  4px; display:  inline; vertical-align:  middle; pointer-events:  none;">Attach to lthigh</div>
+				</div>
+				<div class="attachToButton" class="cabCategory" onclick="attachTo('rthigh');" style="font-family:  Arial; display: inline-block; border: 2px solid white; padding: 4px; cursor: pointer; border-radius: 6px; background-color: rgba(0, 0, 0, 0.5);">
+					<img src="itemicon.png" class="helpNote" help="Attach this model to rthigh." style="pointer-events:  none;vertical-align: middle;" /><div style=" padding-left:  4px; padding-right:  4px; display:  inline; vertical-align:  middle; pointer-events:  none;">Attach to rthigh</div>
+				</div>
+				<div class="attachToButton" class="cabCategory" onclick="attachTo('lfoot');" style="font-family:  Arial; display: inline-block; border: 2px solid white; padding: 4px; cursor: pointer; border-radius: 6px; background-color: rgba(0, 0, 0, 0.5);">
+					<img src="itemicon.png" class="helpNote" help="Attach this model to lfoot." style="pointer-events:  none;vertical-align: middle;" /><div style=" padding-left:  4px; padding-right:  4px; display:  inline; vertical-align:  middle; pointer-events:  none;">Attach to lfoot</div>
+				</div>
+				<div class="attachToButton" class="cabCategory" onclick="attachTo('rfoot');" style="font-family:  Arial; display: inline-block; border: 2px solid white; padding: 4px; cursor: pointer; border-radius: 6px; background-color: rgba(0, 0, 0, 0.5);">
+					<img src="itemicon.png" class="helpNote" help="Attach this model to rfoot." style="pointer-events:  none;vertical-align: middle;" /><div style=" padding-left:  4px; padding-right:  4px; display:  inline; vertical-align:  middle; pointer-events:  none;">Attach to rfoot</div>
+				</div-->
+			</div>
+
 			<div id="title" style="position: fixed; top: 0; right: 0; width: 50%; height: 74px; text-align: right;"></div>
 			<div id="titleRule" class="aaThemeColorOneFadeBackground"></div>
 			<div id="entryContainer" class="aaThemeColorOneScrollBars" style="font-size: 20px; font-weight: 900; position: fixed; top: 80px; bottom: 0; right: 0; margin: 0; text-align: right; border: 0; color: #fff; overflow-y: scroll; font-family: Arial;"></div>
@@ -1951,7 +2145,12 @@
 				else if( category === "items" )
 					titleElem.innerHTML = "CABINETS";
 				else// if( category === "models" )
+				{
 					titleElem.innerHTML = "PROPS";
+					if( playAsPetEntityIndexNumber >= 0 ) {
+						document.querySelector('.petStuffTable').classList.add('petStuffNeeded');
+					}
+				}
 
 				if( mode === "move")
 				{

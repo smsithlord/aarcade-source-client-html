@@ -11,6 +11,10 @@
 				left:  20px;
 			}
 
+			.petStuffHidden {
+				display:  none;
+			}
+
 			.questHiddenCategoryState
 			{
 				display: inline;
@@ -198,9 +202,26 @@
 				border-width:  4px;
 				border-style:  solid;
 			}
+
+			.dotContent {
+				display:  none;
+			}
+
+			.dotPlaceholder {
+				display:  inline-block;
+			}
+
+			.dotContainer:hover .dotPlaceholder {
+				display:  none;
+			}
+
+			.dotContainer:hover .dotContent {
+				display:  inline-block;
+			}
 		</style>
 	</head>
 	<body style="display: none;">
+		<!--a href="javascript:document.location.reload();">yadda</a-->
 
 		<!--div class="rickMenu">
 			<select class="rickSelect"></select>
@@ -282,6 +303,40 @@
 				gridViewOption = (gridViewOption == "1");
 			else
 				gridViewOption = false;
+
+			function unspawnPet() {
+				aaapi.cmd('consoleCommand', 'petplaystop; petremove ' + window.playAsPetEntityIndexNumber + ';');
+				aaapi.cmd('deactivateInputMode');
+			}
+
+			function doPetDelete(elem) {
+				var playAsPet = null;
+				playAsPet = aaapi.cmdEx('getPetByEntityIndex', window.playAsPetEntityIndexNumber);
+				if( playAsPet ) {
+					var existingPets = localStorage.getItem('pets');
+					if( existingPets )
+						existingPets = JSON.parse(existingPets);
+					else
+						existingPets = {};
+
+					var playAsPetModel = playAsPet.model;
+					var modelId = aaapi.cmdEx('generateHashId', playAsPetModel);
+					var existingPet = existingPets[modelId];
+					if( existingPet ) {
+						delete existingPets[modelId];
+						aaapi.cmd('consoleCommand', 'petplaystop; petremove ' + window.playAsPetEntityIndexNumber + ';');
+						localStorage.setItem('pets', JSON.stringify(existingPets));
+					}
+				}
+				aaapi.cmd('deactivateInputMode');
+			}
+
+			function confirmPetDelete(elem) {
+				elem.innerHTML = '...';
+				setTimeout(function(){
+					elem.innerHTML = "Are you sure?<br /><input type='button' class='aaButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor' value='Yes, remove it.' onclick='doPetDelete();' />";
+				}, 500);
+			}
 
 			var g_screenshotDetectedinterval;
 			var g_oldScreenshotId;
@@ -462,6 +517,7 @@
 							var paintIconHTML = arcadeHud.generateIconHTML("painticon.png", 32, 32, "aaTextColorTwoColor");
 							var questsIconHTML = arcadeHud.generateIconHTML("questsicon.png", 32, 32, "aaTextColorTwoColor");
 							var transfersIconHTML = arcadeHud.generateIconHTML("switchicon.png", 32, 32, "aaTextColorTwoColor");
+							var petsIconHTML = arcadeHud.generateIconHTML("petsicon.png", 32, 32, "aaTextColorTwoColor");
 
 							var windowTabsHeaderHTML = arcadeHud.generateWindowTabsHeaderHTML({
 								"styleText": 'width: 100%; height: 100%;',
@@ -514,6 +570,11 @@
 										"id": "transfers",
 										"title": transfersIconHTML + "<div class='tabTitle aaTextColorTwoColor' tabname='transfers'>Transfers</div>",
 										"help": "Transfers"
+									},
+									{
+										"id": "pets",
+										"title": petsIconHTML + "<div class='tabTitle aaTextColorTwoColor' tabname='pets'>Pets</div>",
+										"help": "Pets"
 									}
 								],
 								"activeTabId": tabId,
@@ -521,10 +582,321 @@
 							});
 							document.write(windowTabsHeaderHTML);
 
+							function applyBehavior(behaviorValue) {
+								var petEntityIndex = window.playAsPetEntityIndexNumber
+								console.log('apply behavior: ' + petEntityIndex + ' ' + behaviorValue);
+								aaapi.cmd('consoleCommand', 'petbehavior ' + behaviorValue + ' ' + petEntityIndex + ';');
+							}
+
+							function petChosen(option) {
+								if( option.value == '' ) {
+									return;
+								}
+								//console.log(option.pet.name);
+
+								// does this pet already exist?
+								
+
+								spawnPet(option.pet);
+							}
+
+							function spawnPet(pet) {
+								var commandText = "play_as_next_pet 2; spawn_pet \"" + pet.model + "\" \"" + pet.run + "\" \"" + pet.walk + "\" \"" + pet.idle + "\" \"" + pet.fall + "\" " + pet.scale + " \"" + pet.rot + "\"  \"" + pet.pos + "\" " + pet.near + " " + pet.far + " " + pet.runspeed + " " + pet.walkspeed + ";";
+									aaapi.cmd('consoleCommand', commandText);
+									aaapi.cmd('deactivateInputMode');
+								/*setTimeout(function(){
+									aaapi.cmd('deactivateInputMode');
+									aaapi.cmd('consoleCommand', 'thirdperson; petplay;');
+								}, 500);*/
+							}
+
+							function addDefaultPets() {
+								console.log('add default pets');
+								/*
+									5ffa8742: models\pets\zombiejoe\pet_zombiejoe.mdl
+									f23260d2: models\pets\timbotyson\pet_timbotyson.mdl
+									b1a942e1: models\pets\hackerhaley\pet_hackerhaley.mdl
+									53f9b0b7: models\pets\fitfrank\pet_fitfrank.mdl
+									4218dde9: models\pets\cowboycarl\pet_cowboycarl.mdl
+								*/
+								var defaultPets = [
+									{
+										model: "models/pets/zombiejoe/pet_zombiejoe.mdl",
+										name: "Zombie Joe",
+										run: "run",
+										walk: "walk",
+										fall: "fall",
+										idle: "idle",
+										near: 50.0,
+										far: 150.0,
+										runspeed: 250.0,
+										walkspeed: 60.0,
+										pos: "0 0 0",
+										rot: "0 0 0",
+										scale: "1.0"
+									},
+									{
+										model: "models/pets/timbotyson/pet_timbotyson.mdl",
+										name: "Timbo Tyson",
+										run: "run",
+										walk: "walk",
+										fall: "fall",
+										idle: "idle",
+										near: 50.0,
+										far: 150.0,
+										runspeed: 270.0,
+										walkspeed: 90.0,
+										pos: "0 0 0",
+										rot: "0 0 0",
+										scale: "1.0"
+									},
+									{
+										model: "models/pets/hackerhaley/pet_hackerhaley.mdl",
+										name: "Hacker Haley",
+										run: "run",
+										walk: "walk",
+										fall: "fall",
+										idle: "idle",
+										near: 50.0,
+										far: 150.0,
+										runspeed: 250.0,
+										walkspeed: 170.0,
+										pos: "0 0 0",
+										rot: "0 0 0",
+										scale: "1.0"
+									},
+									{
+										model: "models/pets/fitfrank/pet_fitfrank.mdl",
+										name: "Fit Frank",
+										run: "run",
+										walk: "walk",
+										fall: "fall",
+										idle: "idle",
+										near: 50.0,
+										far: 150.0,
+										runspeed: 270.0,
+										walkspeed: 90.0,
+										pos: "0 0 0",
+										rot: "0 0 0",
+										scale: "1.0"
+									},
+									{
+										model: "models/pets/cowboycarl/pet_cowboycarl.mdl",
+										name: "Cowboy Carl",
+										run: "run",
+										walk: "walk",
+										fall: "fall",
+										idle: "idle",
+										near: 50.0,
+										far: 150.0,
+										runspeed: 170.0,
+										walkspeed: 100.0,
+										pos: "0 0 0",
+										rot: "0 0 0",
+										scale: "1.0"
+									}
+								];
+
+							 	var existingPets = localStorage.getItem('pets');
+								if( existingPets )
+									existingPets = JSON.parse(existingPets);
+								else
+									existingPets = {};
+
+								for( var i = 0; i < defaultPets.length; i++ ) {
+									var defaultPet = defaultPets[i];
+									var file = defaultPet.model;
+									var relativeFile = defaultPet.model;	// always a relative model here.
+									// first, check if a model that matches this one already exists...
+									var model = aaapi.cmdEx("findLibraryModel", "file", relativeFile);
+						 			if( !model )
+						 				model = aaapi.cmdEx("createModel", "file", relativeFile);
+
+						 			if( model )
+						 			{
+										existingPets[model.info.id] = {
+											name: defaultPet.name,
+											scale: defaultPet.scale,
+											pos: defaultPet.pos,
+											rot: defaultPet.rot,
+											model: defaultPet.model,
+											walk: defaultPet.walk,
+											run: defaultPet.run,
+											idle: defaultPet.idle,
+											fall: defaultPet.fall,
+											runspeed: defaultPet.runspeed,
+											walkspeed: defaultPet.walkspeed
+										};
+						 			}
+							 	}
+								
+								localStorage.setItem('pets', JSON.stringify(existingPets));
+								localStorage.setItem('didAddDefaultPets', '1');
+
+				 				setTimeout(function()
+				 				{
+				 					document.location.reload();
+				 				}, 500);
+							}
+
+							function commandFormatHelp()
+							{
+								var lookSpotIconHTML = arcadeHud.generateIconHTML("lookspoticon.png", 26, 26, "aaTextColorOneColor");
+								var camRotIconHTML = arcadeHud.generateIconHTML("3rdlockicon.png", 26, 26, "aaTextColorOneColor");
+								var addWearIconHTML = arcadeHud.generateIconHTML("addwearicon.png", 26, 26, "aaTextColorOneColor");
+								var assignAnimationIconHTML = arcadeHud.generateIconHTML("animavataricon.png", 26, 26, "aaTextColorOneColor");
+								var addAvatarIconHTML = arcadeHud.generateIconHTML("addavataricon.png", 26, 26, "aaTextColorOneColor");
+
+								var text = "<font class='aaThemeColorOneColor aaTitleText aaTitleTextSizeFontSize'>Introduction</font><div style='padding: 20px;'>Pets are avatars that can follow you around.<br /><br />You can setup ANY model to be a pet - but it'll need at least IDLE & RUN animations to look good.<br /><br />Most pets stuff is done in the <b>Pets Tab</b> (F9).<br /><br />Press <b>USE</b> on an existing pet to bring up its options.<br /><br />The <b>BUILD MENU</b> also has some pet stuff in its top-left corner while spawning props - to <b>create new</b> pets & to <b>attach stuff</b> to your pet.</div><font class='aaThemeColorOneColor aaTitleText aaTitleTextSizeFontSize'>Pet Outfits</font><div style='padding: 20px;'>You can attach things to <i>some</i> pet models to create different outfits.</div><font class='aaThemeColorOneColor aaTitleText aaTitleTextSizeFontSize'>Pet Animations</font><div style='padding: 20px;'>You can play animations on pets, or bind animations to hotkeys if you are advanced.<br /><tt style='display: inline-block; padding: 4px;' class='aaThemeColorTwoBackgroundColor'>bind j \"petplayanimraw attack\"</tt></div><font class='aaThemeColorOneColor aaTitleText aaTitleTextSizeFontSize'>Pet Behaviors</font><div style='padding: 20px;'>Your pet can follow you, just look at you, or ignore you. There's also <b>Pet Target</b> in the Commands Tab to make pets go to that spot.</div><font class='aaThemeColorOneColor aaTitleText aaTitleTextSizeFontSize'>Play-As-Pet</font><div style='padding: 20px;'>You can press <b>USE</b> to become one of your pets & run around using it as your own avatar.<br /><br /><b>Pet Next</b> and  <b>Pet Previous</b> are in the Commands Tab for switching between pets - or use the <b>Pets Tab (F9)</b>.</div><font class='aaThemeColorOneColor aaTitleText aaTitleTextSizeFontSize'>Adding New Pets</font><div style='padding: 20px;'><ol style='padding-top: 0; margin-top: 0; padding-bottom: 0; margin-bottom: 0;'><li>While spawning a model, set the scale/offset/rotation the way you want.</li><li>Click the " + addAvatarIconHTML + " <b>Add/Update Pet</b> button.</li><li>Now your model is available in the <b>Pets Tab</b>.</li><li>Go to the <b>Pets Tab</b> & choose your new pet from the drop-down list to spawn it into the world.</li></ol></div><font class='aaThemeColorOneColor aaTitleText aaTitleTextSizeFontSize'>Adjusting Pets</font><div style='padding: 20px;'>Usually you have to adjust your pet some for it to look good.<br /><br />Use the " + addAvatarIconHTML + " <b>Add/Update Pet</b> button for scale/offset/rotation.<br /><br />Use the <b>Pets Tab (F9)</b> to set the <b>animation sequences</b> by first choosing the animation in the drop-down, then clicking the " + assignAnimationIconHTML + " <b>Assign Animation</b> button.<br /><br />And finally, to adjust the <b>speeds</b> of the animations, use the button labeled <b>Configure Pet</b> in the <b>Pets Tab</b>.</div><font class='aaThemeColorOneColor aaTitleText aaTitleTextSizeFontSize'>Creating Pet Outfits</font><div style='padding: 20px;'><b>Attach Models</b> - If you are playing as a pet & spawning a prop into the world - the <b>Build Menu</b> has a new " + addWearIconHTML + " <b>Pet Attach/Detach</b> button to attach the model to your pet.<br /><br /><b>ATTACHING TIPS</b> <ol><li>Set your pet to a good animation to dress it in.</li><li>Use 3rd-person camera.</li><li>Use " + camRotIconHTML + " <b>Camera Rotation Lock</b> from the Commands Tab.</li><li>Use " + lookSpotIconHTML + " <b>Player Look-Spot Toggle</b> from the Commands Tab.</li></ol><br /><b>NOTE:</b> After you've attached a new model to a specific pet the 1st time, you can quickly take it on/off using " + addWearIconHTML + " <b>Pet Attach/Detach</b> from the <b>Commands Tab</b> because it remembers model attachment points per-pet.<br /><br /><b>Save Your Outfit</b> - Go to the <b>Pets Tab (F9)</b> and click the Manage Outfit &gt; Save button. (Or the New Outfit button if you want to type a name.)<br /><br /><b>Wear Your Outfit</b> - Go to the <b>Pets Tab</b>, choose a pet, & then choose one of its outfits from the drop-down.</div><font class='aaThemeColorOneColor aaTitleText aaTitleTextSizeFontSize'>Pet Persistence</font><div style='padding: 20px;'>AArcade remembers the pet you currently are.<br /><br />It also remembers which pets you left behind in each world + the outfits they were wearing. And if you join a world as a pet that already exists there - you spawn at wherever the pet already was.<br /><br />You can toggle this behavior in Main Menu &gt; Options Menu &gt; UI tab &gt; Pet Persistence.</div><br /><font class='aaThemeColorOneColor aaTitleText aaTitleTextSizeFontSize'>Pet Notes</font><div style='padding: 20px;'><ul style='margin-top: 0px; margin-bottom: 0px;'><li>Pets aren't like other objects - they have a separate system for saving/loading etc.</li><li>Pets are not multiplayer yet.</li><li>Any model can be used as a pet, but only some models were designed for attaching stuff to. (They need to have been compiled w/ named attachment points.)</li><li>There can only be 1 of each pet in the world at a time - can't do duplicate pets.</li><li>Models can only be attached to a pet at ONE position at a time. Can't do duplicate models attached several times.</li><li>Attached models ignore skins / bodygroups / animations (of their own) for now.</li><li>Only prop models can be attached, not media items.</li></div>";
+								createModalAlert("Pet Help", text, "");
+							}
+
+							var aaModalAlertMenu;
+							function createModalAlert(title, text, action)
+							{
+								modalWindowHeight = 700;
+
+								if( !!aaModalAlertMenu )
+								{
+									console.log("ERROR: A modal alert menu is already being displayed!");
+									return;
+								}
+
+								// Lets be modal.
+								var modalContainer = document.createElement("div");
+								modalContainer.style.cssText = "position: fixed; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); z-index: 999999; font-family: Arial;";
+								modalContainer.addEventListener("click", function(e)
+								{
+									/*
+									var isChild = false;
+									var childNode = e.target;
+									while(!!childNode)
+									{
+										childNode = childNode.parentNode;
+										if( childNode === e.currentTarget )
+										{
+											isChild = true;
+											break;
+										}
+									}
+									*/
+
+									if( e.currentTarget !== e.target )
+									{
+										// the modal window itself is clicked
+										/*
+										if( !isChild )
+										{
+											console.log("propo stopped");
+											e.preventDefault();
+											e.stopImmediatePropagation();//Immediate
+										}
+										*/
+										return;
+									}
+									else
+									{
+										if( !!!aaModalAlertMenu.flashInterval )
+										{
+											aaModalAlertMenu.flashInterval = setInterval(function()
+											{
+												var titleRow = this.querySelector("tr");
+												var titleBarElems = titleRow.querySelectorAll("td");
+												var titleBarElem;
+
+												if( !!!this.flashCount )
+												{
+													for( var i = 0; i < titleBarElems.length; i++ )
+													{
+														titleBarElem = titleBarElems[i];
+														if( titleBarElem.classList.contains("aaThemeColorOneHighBackgroundColor") )
+														{
+															titleBarElem.classList.remove("aaThemeColorOneHighBackgroundColor");
+															titleBarElem.classList.add("aaThemeColorOneBackgroundColor");
+														}
+													}
+
+													clearInterval(this.flashInterval);
+													delete this.flashInterval;
+												}
+												else
+												{
+													for( var i = 0; i < titleBarElems.length; i++ )
+													{
+														titleBarElem = titleBarElems[i];
+														if( titleBarElem.classList.contains("aaThemeColorOneHighBackgroundColor") )
+														{
+															titleBarElem.classList.remove("aaThemeColorOneHighBackgroundColor");
+															titleBarElem.classList.add("aaThemeColorOneBackgroundColor");
+														}
+														else if(titleBarElem.classList.contains("aaThemeColorOneBackgroundColor"))
+														{
+															titleBarElem.classList.remove("aaThemeColorOneBackgroundColor");
+															titleBarElem.classList.add("aaThemeColorOneHighBackgroundColor");
+														}
+													}
+
+													this.flashCount--;
+												}
+											}.bind(aaModalAlertMenu), 100);
+
+											aaModalAlertMenu.flashCount = 6;
+										}
+									}
+								}.bind(modalContainer), true);
+
+								var modalHTML = "";
+
+								// header
+								var modalYPos = parseInt(window.innerHeight / 2.2) - (modalWindowHeight / 2) + "px";
+								var modalWindowHeaderHTML = arcadeHud.generateWindowHeaderHTML(title, "margin-left: auto; margin-right: auto; top: " + modalYPos + ";", true, true, "", "");
+								modalHTML += modalWindowHeaderHTML;
+
+								// body
+								modalHTML += '<div class="aaWindowPaneContentScrollable aaScrollBars aaThemeColorTwoHighBackgroundColor aaThemeColorTwoLowBorderColor aaTitleTextSizeFontSize aaTextColorTwoColor" style="max-width: 700px; height: ' + modalWindowHeight + 'px; max-height: ' + modalWindowHeight + 'px;">';
+								modalHTML += text;//"Are you sure?";
+								modalHTML += "</div>";
+
+								modalHTML += '\
+									<table class="aaWindowActions">\
+										<tr>\
+											<td>\
+											</td>\
+											<td style="width: 1%; white-space: nowrap;">\
+												<input type="button" class="aaButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor" value="OK" />\
+											</td>\
+										</tr>\
+									</table>\
+								';
+
+								// footer
+								var modalWindowFooterHTML = arcadeHud.generateWindowFooterHTML();
+								modalHTML += modalWindowFooterHTML;
+
+								modalContainer.innerHTML = modalHTML;
+								aaModalAlertMenu = modalContainer.querySelector(".aaWindow");
+								document.body.appendChild(modalContainer);
+
+								var buttons = modalContainer.querySelectorAll(".aaWindowActions input[type='button']");
+								buttons[0].addEventListener("click", function(e)
+								{
+									aaModalAlertMenu.parentNode.parentNode.removeChild(aaModalAlertMenu.parentNode);
+									aaModalAlertMenu = undefined;
+
+									eval(action);
+								}, true);
+							}
+
+							function playSequence(sequenceName) {
+								aaapi.cmd('consoleCommand', 'petplayanimraw "' + sequenceName + '" ' + window.playAsPetEntityIndexNumber + ';');
+								//aaapi.cmd('deactivateInputMode');
+							}
+			
 							var backpackReady = false;
 							var paintReady = false;
 							var questsReady = false;
 							var transfersReady = false;
+							var petsReady = false;
 							function onChangeCallback(tabId)
 							{
 								// clear the old active tab title
@@ -575,6 +947,493 @@
 								{
 									transfersReady = true;
 									prepTransfersMenu();
+								}
+								else if( tabId == "pets" && !petsReady )
+								{
+									var playAsPet = null;
+									var playAsPetEntityIndex = aaapi.cmdEx('getPlayAsPetEntityIndex');
+									//window.playAsPetEntityIndexNumber;
+									if( playAsPetEntityIndex == '' )
+									{
+										window.playAsPetEntityIndexNumber == -1;
+									}
+									else
+									{
+										window.playAsPetEntityIndexNumber = parseInt(playAsPetEntityIndex);
+										playAsPet = aaapi.cmdEx('getPetByEntityIndex', window.playAsPetEntityIndexNumber);
+
+										if( playAsPet ) {
+											var petStuff = document.querySelector('.petStuff');
+											petStuff.classList.remove('petStuffHidden');
+										}
+									}
+									//console.log(JSON.stringify(playAsPet));
+									document.querySelector("#petOutfitsList").value = playAsPet.outfitId;
+									//document.querySelector("#petOutfitsList").value = playAsPet.sequence;
+									document.querySelector("#petBehaviorList").value = playAsPet.behavior;
+
+									// initial animations
+									if( aaapi.cmdEx("getEntityModelSequenceNames", playAsPetEntityIndex) === true )
+									{
+										var sequenceNamesBox = document.querySelector('#sequenceNamesBox');
+										var sequenceList;
+										var randStuff = "r" + Math.round(Math.random() * 10.0).toString() + Math.round(Math.random() * 10.0).toString() + Math.round(Math.random() * 10.0).toString() + Math.round(Math.random() * 10.0).toString();
+										var snapScript = document.createElement("script");
+										snapScript.src = "asset://shots/model_info.js?r=" + randStuff;
+										snapScript.onload = function()
+										{
+											var sequenceName, option;
+											for( var i = 0; i < aa_fetched_model_sequences.length; i++ ) {
+												sequenceName = aa_fetched_model_sequences[i];
+												option = document.createElement('option');
+												if( sequenceName == playAsPet.sequence ) {
+													option.selected = true;
+												}
+												option.value = sequenceName;
+												option.text = sequenceName;
+												sequenceNamesBox.appendChild(option);
+											}
+										};
+										document.getElementsByTagName("head")[0].appendChild(snapScript);
+									}
+
+
+
+									petsReady = true;
+
+									// add all existing pets in the world
+									var petEntries = aaapi.cmdEx('getAllPets', false, false);	// gets all pets & fetches their model entries & creates the model entries if they don't exist yet
+									petEntries = checkPetModelCache(petEntries);
+
+									// Function to move matching pet entry (the play-as-pet) to start of array
+									// claude: https://claude.ai/chat/1aa23607-c5cb-4e17-9bc3-1542809f71cb
+									function sortPetEntries(petEntries, playAsPetEntityIndex) {
+									    var matchIndex = -1;
+									    
+									    // Find the matching entry
+									    for (var i = 0; i < petEntries.length; i++) {
+									        var petEntry = petEntries[i];
+									        if (window.playAsPetEntityIndexNumber >= 0 && petEntry.entityIndex == playAsPetEntityIndex) {
+									            matchIndex = i;
+									            break;
+									        }
+									    }
+									    
+									    // If a match was found and it's not already at the start
+									    if (matchIndex > 0) {
+									        // Remove the matching entry and store it
+									        var matchingEntry = petEntries.splice(matchIndex, 1)[0];
+									        // Add it to the beginning of the array
+									        petEntries.unshift(matchingEntry);
+									    }
+									    
+									    return petEntries;
+									}
+
+									petEntries = sortPetEntries(petEntries, window.playAsPetEntityIndexNumber);
+
+									// get all saved pets
+									var pets = getAllSavedPets();
+
+									var allPetsBox = document.querySelector('#allPetsBox');
+									allPetsBox.pets = pets;
+
+									var pet, option;
+									for( var i = 0; i < pets.length; i++ ) {
+										pet = pets[i];
+
+										option = document.createElement('option');
+										option.text = pet.name;
+										option.value = i;
+										option.pet = pet;
+										allPetsBox.appendChild(option);
+									}
+
+									function getAllSavedPets() {
+										var pets = [];
+										window.pets = pets;
+
+										// first, get all the ones from local storage
+										var existingPets = localStorage.getItem('pets');
+										if( existingPets )
+											existingPets = JSON.parse(existingPets);
+										else
+											existingPets = {};
+
+										var existingPet;
+										var existingPetKeys = Object.keys(existingPets);
+										for( var i = 0; i < existingPetKeys.length; i++ ) {
+											existingPet = existingPets[existingPetKeys[i]];
+											existingPet.run = existingPet.run || "menu_walk";
+											existingPet.walk = existingPet.walk || "menu_walk";
+											existingPet.fall = existingPet.fall || "swimming_all";
+											existingPet.idle = existingPet.idle || "menu_combine";
+											existingPet.near = existingPet.near || 50.0;
+											existingPet.far = existingPet.far || 150.0;
+											existingPet.runspeed = existingPet.runspeed || 150.0;
+											existingPet.walkspeed = existingPet.walkspeed || 110.0;
+
+											pets.push(existingPet);
+										}
+
+										/*for( var i = 0; i < pets.length; i++ ) {
+											var tempPet = pets[i];
+											//console.log(JSON.stringify(pets[i]));
+
+											// get current transform info
+											//var model = aaapi.cmdEx("getLibraryModel", currentModelId);
+											//var modelFile = model.platforms[arcadeHud.platformId].file.toLowerCase();
+
+											var modelId = aaapi.cmdEx('generateHashId', tempPet.model);
+											existingPets[modelId] = {
+												name: tempPet.name,
+												model: tempPet.model,
+												run: tempPet.run,
+												walk: tempPet.walk,
+												fall: tempPet.fall,
+												idle: tempPet.idle,
+												scale: tempPet.scale,
+												rot: tempPet.rot,
+												pos: tempPet.pos,
+												near: tempPet.near,
+												far: tempPet.far,
+												runspeed: tempPet.runspeed,
+												walkspeed: tempPet.walkspeed
+											};
+										}
+										localStorage.setItem('pets', JSON.stringify(existingPets));*/
+
+										return pets;
+									}
+
+									/*var petEntries = [];
+									for( var i = 0; i < results.length; i++ )
+									{
+										var petEntry = {petInfo: results[i], modelEntry: results[i]};
+										petEntry.modelInfo = modelInfo;
+										//var modelId = petEntry.petInfo.modelId;
+										//if( modelId && modelId != '')
+										//{
+											//var modelInfo = aaapi.cmdEx('getLibraryModel', modelId);
+											//if( modelInfo ) {
+											//	petEntry.modelInfo = modelInfo;
+											//}
+										//}
+										petEntries.push(petEntry);
+									}*/
+
+									var petOutfitsList = document.querySelector('#petOutfitsList');
+									var petOutfits = null;
+
+									window.outfitDeleteConfirmed = function() {
+										console.log('actually delete outfit: ' + petOutfitsList.value);
+										aaapi.cmd('consoleCommand', 'petoutfitdelete \"' + petOutfitsList.value + '\";');
+										aaapi.cmd('deactivateInputMode');
+									};
+
+									window.petAnimSaveClicked = function() {
+										createPetSaveAnimPrompt("Assign Animation", "<div style='font-size: 14px;'>Choose the slot to assign this animation to:</div><table style='width: 100%;'><tr><td><select id='petAnimSlot' style='font-size: 20px; width: 100%;'><option value='idle'>Idle</option><option value='run'>Run</option><option value='walk'>Walk</option><option value='fall'>Fall</option></td></tr></table>", "You usually only need to set an idle & a run.", function(data) {
+											//console.log(data);
+
+											var animSlot = data;//'idle';
+											var existingPets = localStorage.getItem('pets');
+											if( existingPets )
+												existingPets = JSON.parse(existingPets);
+											else
+												existingPets = {};
+
+											var playAsPetModel = playAsPet.model;
+											var modelId = aaapi.cmdEx('generateHashId', playAsPetModel);
+											var existingPet = existingPets[modelId];
+											var animName = document.querySelector('#sequenceNamesBox').value;
+											if( existingPet && animName ) {
+												existingPet[animSlot] = animName;
+												localStorage.setItem('pets', JSON.stringify(existingPets));
+											}
+
+											aaapi.cmd('consoleCommand', 'petupdate ' + playAsPet.entityIndex + ' ' + data + ' ' + animName + ';');
+										});
+									};
+
+									window.petOutfitSaveClicked = function() {
+										var outfitId = petOutfitsList.value;
+										if( outfitId == "" ) {
+											// auto-generate a number outfit name that isn't used yet.
+											var numb = 0;
+											var outfit;
+											while( true ) {
+												if( petOutfits.indexOf(numb+'') < 0 ) {
+													outfitId = numb + '';
+													break;
+												}
+												numb++;
+											}
+										}
+
+										aaapi.cmd('consoleCommand', 'petoutfitsave \"' + outfitId + '\";');
+										aaapi.cmd('deactivateInputMode');
+									};
+
+									window.confirmPetOutfitDelete = function() {
+										if( petOutfitsList.value == "" ) {
+											return;
+										}
+										createModalConfirm('Delete Outfit', 'Are you sure?', 'console.log("canceled");', 'outfitDeleteConfirmed();');
+									};
+
+									window.createNewPetOutfitClicked = function() {
+										createPetOutfitCreatePrompt("Create New Outfit", "<table><tr><td>Outfit Name:</td><td><input type='text' id='newOutfitName' placeholder='auto' /></td></tr></table>", "Outfit names must be alphanumeric characters only, no spaces. [a-z0-9]", function(data) {
+											//aaapi.cmd('consoleCommand', 'petoutfitsave \"' + data + '\";');
+											
+											var outfitId = data;
+											if( outfitId == "" ) {
+												// auto-generate a number outfit name that isn't used yet.
+												var numb = 0;
+												var outfit;
+												while( true ) {
+													if( petOutfits.indexOf(numb+'') < 0 ) {
+														outfitId = numb + '';
+														break;
+													}
+													numb++;
+												}
+											}
+
+											aaapi.cmd('consoleCommand', 'petoutfitsave \"' + outfitId + '\";');
+											aaapi.cmd('deactivateInputMode');
+										});
+									};
+
+									window.petImportClicked = function() {
+										createPetImportPrompt("Import Pet Configuration", "<div style='padding: 8px;'>Paste a pet config text string into the box:</div><textarea id='petConfigBox' style='font-size: 16px; padding: 6px; width: 600px; height: 200px;'></textarea>", "These look like code snippets that define walk & run animations, etc. They are something a friend sends you in a DM.", function(rawData) {
+											try {
+												var entityIndex = playAsPet.entityIndex;
+												console.log(entityIndex);
+
+												var existingPets = localStorage.getItem('pets');
+												if( existingPets )
+													existingPets = JSON.parse(existingPets);
+												else
+													existingPets = {};
+
+												var modelHash = aaapi.cmdEx('generateHashId', playAsPet.model);
+												var existingPetInfo = existingPets[modelHash];
+
+												var data = JSON.parse(rawData);
+												var validKeys = ['name', 'run', 'walk', 'fall', 'idle', 'scale', 'pos', 'rot', 'near', 'far', 'runspeed', 'walkspeed'];
+												var testKey;
+												for( var i = 0; i < validKeys.length; i++ )
+												{
+													testKey = validKeys[i];
+													if( data.hasOwnProperty(testKey) && data[testKey].indexOf(';') < 0 )
+													{
+														existingPetInfo[testKey] = data[testKey];
+
+														if( testKey != 'name' )
+															aaapi.cmd('consoleCommand', "petupdate " + entityIndex + " " + testKey + " \"" + data[testKey] + "\";");
+													}
+												}
+
+												// now save it to local storage too
+												localStorage.setItem('pets', JSON.stringify(existingPets));
+												aaapi.cmd('deactivateInputMode');
+											} catch(e) {
+												console.log('errored');
+											}
+											//console.log(data);
+										});
+									};
+
+									window.configurePetClicked = function() {
+										createPetConfigurePrompt("Configure Pet", "<table><tr><td align='right'>Walk Speed:</td><td><input type='text' id='petWalkSpeed' placeholder='70' /></td></tr><tr><td align='right'>Run Speed:</td><td><input type='text' id='petRunSpeed' placeholder='130' /></td></tr><tr><td align='right'>Near Dist:</td><td><input type='text' id='petNearDist' placeholder='80' /></td></tr><tr><td align='right'>Far Dist:</td><td><input type='text' id='petFarDist' placeholder='180' /></td></tr><tr><td colspan='2' align='center' style='padding-bottom: 0; height: 55px;'><input type='button' class='aaButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor' value='Remove From Pet List' onclick='confirmPetDelete(this.parentNode);' /></td></tr></table>", "These control the animation speeds & how closely the pet follows you.", function(data) {
+
+											// function addOrUpdatePet() {
+											var existingPets = localStorage.getItem('pets');
+											if( existingPets )
+												existingPets = JSON.parse(existingPets);
+											else
+												existingPets = {};
+
+											var modelHash = aaapi.cmdEx('generateHashId', playAsPet.model);
+											//console.log(modelHash);
+											//console.log(JSON.stringify(existingPets[modelHash]));
+
+											var existingPetInfo = existingPets[modelHash];
+											existingPetInfo.near = Number(data.near);
+											existingPetInfo.far = Number(data.far);
+											existingPetInfo.runspeed = Number(data.runspeed);
+											existingPetInfo.walkspeed = Number(data.walkspeed);
+											localStorage.setItem('pets', JSON.stringify(existingPets));
+
+
+											aaapi.cmd('deactivateInputMode');
+										});
+									};
+
+									function onPetClick()
+									{
+										var entityIndex = this.petEntry.entityIndex;
+										if( entityIndex == window.playAsPetEntityIndexNumber )
+										{
+											aaapi.cmd('consoleCommand', 'petplaystop;');
+										}
+										else
+										{
+											aaapi.cmd('consoleCommand', 'petplay \"' + entityIndex + '\";');
+										}
+										aaapi.cmd('deactivateInputMode');
+										//console.log("Switch to pet!");
+									}
+
+									function getPetOutfits(modelFile, petOutfitId)
+									{
+										petOutfits = aaapi.cmdEx('getAllPetOutfits', modelFile);
+										petOutfitsList.innerHTML = '';
+
+										// "NONE" option
+										//if( petOutfitId == "" ) {
+											var option = document.createElement('option');
+											option.value = '';
+											option.text = 'None';
+											petOutfitsList.appendChild(option);
+										//}
+
+										for( var i = 0; i < petOutfits.length; i++ )
+										{
+											option = document.createElement('option');
+											outfitId = petOutfits[i];
+											option.value = outfitId;
+											option.text = outfitId;
+
+											if( outfitId == petOutfitId )
+											{
+												option.selected = true;
+											}
+
+											petOutfitsList.appendChild(option);
+										}
+									}
+
+									//var foundActive = false;
+									var petOutfitsList = document.querySelector("#petOutfitsList");
+									petOutfitsList.addEventListener('change', function() {
+										//console.log('change to ' + petOutfitsList.value);
+
+										aaapi.cmd('consoleCommand', 'petoutfitstrip;');
+
+										setTimeout(function(){	// this is because stripping the outfit is not syncronous even from within the C++ :S (because removeobject needs roundtrip to server code)
+											aaapi.cmd('consoleCommand', 'petoutfitload "' + petOutfitsList.value + '";');
+										}, 100);
+										aaapi.cmd("deactivateInputMode");
+									});
+
+
+									if( !localStorage.getItem('didAddDefaultPets') ) {
+										var addDefaultPetsRow = document.querySelector('.addDefaultPetsRow');
+										addDefaultPetsRow.style.display = "table-row";
+									}
+
+// claude: https://claude.ai/chat/7271695e-0d14-48c9-a36c-17f8f1b1b894
+function checkPetModelCache(petEntries_in) {
+	var petEntries = petEntries_in;
+
+    // Constants
+    var CACHE_KEY = 'tabMenuPetModelIdCache';
+    
+    // Helper to get current cache
+    function getStoredCache() {
+        var cached = localStorage.getItem(CACHE_KEY);
+        return cached ? JSON.parse(cached) : {};
+    }
+    
+    // Helper to check if models list has changed
+    function hasNewModels(entries, cache) {
+        var currentModels = {};
+        
+        // Build hash of current models
+        for (var i = 0; i < entries.length; i++) {
+            if (entries[i].model) {
+                currentModels[entries[i].model] = true;
+            }
+        }
+        
+        // Check if any current models aren't in cache
+        for (var model in currentModels) {
+            if (!cache.hasOwnProperty(model)) {
+                return true;
+            }
+        }
+        
+        // Check if any cached models aren't in current list
+        for (var cachedModel in cache) {
+            if (!currentModels.hasOwnProperty(cachedModel)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    // Main cache check logic
+    function checkAndUpdateCache() {
+        var cache = getStoredCache();
+        
+        // Check if model list has changed
+        if (hasNewModels(petEntries, cache)) {
+            //getFullPetEntriesUpdate(); // Updates global petEntries
+            console.log('upated pet thumb cache');
+            petEntries = aaapi.cmdEx('getAllPets', true, true);
+            
+            // Create new cache from updated entries
+            var newCache = {};
+            for (var i = 0; i < petEntries.length; i++) {
+                var entry = petEntries[i];
+                if (entry.model && entry.modelId) {
+                    newCache[entry.model] = entry.modelId;
+                }
+            }
+            
+            // Save new cache
+            localStorage.setItem(CACHE_KEY, JSON.stringify(newCache));
+        }
+        else {
+            for (var i = 0; i < petEntries.length; i++) {
+                var entry = petEntries[i];
+                entry.modelId = cache[entry.model];
+                entry.modelEntry = aaapi.cmdEx('getLibraryModel', entry.modelId);
+                //console.log(JSON.stringify(entry));
+            }
+        }
+    }
+    
+    checkAndUpdateCache();
+    return petEntries;
+}
+
+
+									var petEntry, modelId, modelEntry, tile;
+									for( var i = 0; i < petEntries.length; i++ )
+									{
+										petEntry = petEntries[i];
+
+										if( !petEntry.modelEntry )
+										{
+											console.log("Skipping pet that doesn't exist in library. (Spawn it once to resolve this.): " + petEntry.model);
+											continue;
+										}
+
+										var tile = arcadeHud.createTile(petEntry.modelEntry, petsContainer, "modelpreview", "", onPetClick, 128, 128);
+										tile.petEntry = petEntry;
+										if( window.playAsPetEntityIndexNumber >= 0 && petEntry.entityIndex == playAsPetEntityIndex ) //!!object )//&& object.entity > -1)
+										{
+											tile.classList.add('existingObject');
+											tile.classList.add('aaTextColorOneBorderColor');
+											getPetOutfits(petEntry.model, petEntry.outfitId);
+											if( petEntry.outfitId && petEntry.outfitId != '' ) {
+												document.querySelector('#petOutfitsList').value = petEntry.outfitId;
+											}
+										}
+									}
 								}
 							}
 
@@ -784,6 +1643,563 @@
 
 									eval(noAction);
 								}, true);
+							}
+
+							function createPetOutfitCreatePrompt(title, text, help, confirmCallback)
+							{
+								if( !!aaModalMenu )
+								{
+									console.log("ERROR: A modal menu is already being displayed!");
+									return;
+								}
+
+								// Lets be modal.
+								var modalContainer = document.createElement("div");
+								modalContainer.style.cssText = "position: fixed; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8);";
+								modalContainer.addEventListener("click", function(e)
+								{
+									if( e.currentTarget !== e.target )
+									{
+										return;
+									}
+									else
+									{
+										if( !!!aaModalMenu.flashInterval )
+										{
+											aaModalMenu.flashInterval = setInterval(function()
+											{
+												var titleRow = this.querySelector("tr");
+												var titleBarElems = titleRow.querySelectorAll("td");
+												var titleBarElem;
+
+												if( !!!this.flashCount )
+												{
+													for( var i = 0; i < titleBarElems.length; i++ )
+													{
+														titleBarElem = titleBarElems[i];
+														if( titleBarElem.classList.contains("aaThemeColorOneHighBackgroundColor") )
+														{
+															titleBarElem.classList.remove("aaThemeColorOneHighBackgroundColor");
+															titleBarElem.classList.add("aaThemeColorOneBackgroundColor");
+														}
+													}
+
+													clearInterval(this.flashInterval);
+													delete this.flashInterval;
+												}
+												else
+												{
+													for( var i = 0; i < titleBarElems.length; i++ )
+													{
+														titleBarElem = titleBarElems[i];
+														if( titleBarElem.classList.contains("aaThemeColorOneHighBackgroundColor") )
+														{
+															titleBarElem.classList.remove("aaThemeColorOneHighBackgroundColor");
+															titleBarElem.classList.add("aaThemeColorOneBackgroundColor");
+														}
+														else if(titleBarElem.classList.contains("aaThemeColorOneBackgroundColor"))
+														{
+															titleBarElem.classList.remove("aaThemeColorOneBackgroundColor");
+															titleBarElem.classList.add("aaThemeColorOneHighBackgroundColor");
+														}
+													}
+
+													this.flashCount--;
+												}
+											}.bind(aaModalMenu), 100);
+
+											aaModalMenu.flashCount = 6;
+										}
+									}
+								}.bind(modalContainer), true);
+
+								var modalHTML = "";
+
+								// header
+								var modalYPos = (window.innerHeight / 3) + "px";
+								var modalWindowHeaderHTML = arcadeHud.generateWindowHeaderHTML(title, "margin-left: auto; margin-right: auto; top: " + modalYPos + ";", true, true, "", "");
+								modalHTML += modalWindowHeaderHTML;
+
+								// body
+								modalHTML += '<div class="aaWindowPaneContent aaThemeColorTwoHighBackgroundColor aaThemeColorTwoLowBorderColor aaTitleTextSizeFontSize aaTextColorTwoColor" style="font-family: Arial;">';
+								modalHTML += text;//"Are you sure?";
+								modalHTML += "</div>";
+
+								modalHTML += '\
+									<table class="aaWindowActions">\
+										<tr>\
+											<td>\
+											</td>\
+											<td style="width: 1%; white-space: nowrap;">\
+												<input type="button" class="aaButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor" value="OK" />\
+												<input type="button" class="aaButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor" value="Cancel" />\
+											</td>\
+										</tr>\
+									</table>\
+								';
+
+								// footer
+								var modalWindowFooterHTML = arcadeHud.generateWindowFooterHTML();
+								modalHTML += modalWindowFooterHTML;
+
+								modalContainer.innerHTML = modalHTML;
+								aaModalMenu = modalContainer.querySelector(".aaWindow");
+								document.body.appendChild(modalContainer);
+
+								function TestLowerCaseAlphaNumeric(value) {
+								    const regex = /^[a-z0-9]+$/;
+								    return regex.test(value);
+								}
+
+								var buttons = modalContainer.querySelectorAll(".aaWindowActions input[type='button']");
+								buttons[0].addEventListener("click", function(e)
+								{
+									var val = document.querySelector('#newOutfitName').value.toLowerCase();
+									if( val != '' && !TestLowerCaseAlphaNumeric(val) )
+									{
+										return;
+									}
+
+									aaModalMenu.parentNode.parentNode.removeChild(aaModalMenu.parentNode);
+									aaModalMenu = undefined;
+
+									confirmCallback(val);
+									//eval(yesAction);
+								}, true);
+
+								buttons[1].addEventListener("click", function(e)
+								{
+									aaModalMenu.parentNode.parentNode.removeChild(aaModalMenu.parentNode);
+									aaModalMenu = undefined;
+
+									//eval(noAction);
+								}, true);
+
+								var pane = modalContainer.querySelector('.aaWindowPaneContent');
+								pane.setAttribute('help', help);
+								arcadeHud.assignHelp(pane);
+							}
+
+							function createPetSaveAnimPrompt(title, text, help, confirmCallback)
+							{
+								if( !!aaModalMenu )
+								{
+									console.log("ERROR: A modal menu is already being displayed!");
+									return;
+								}
+
+								// Lets be modal.
+								var modalContainer = document.createElement("div");
+								modalContainer.style.cssText = "position: fixed; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8);";
+								modalContainer.addEventListener("click", function(e)
+								{
+									if( e.currentTarget !== e.target )
+									{
+										return;
+									}
+									else
+									{
+										if( !!!aaModalMenu.flashInterval )
+										{
+											aaModalMenu.flashInterval = setInterval(function()
+											{
+												var titleRow = this.querySelector("tr");
+												var titleBarElems = titleRow.querySelectorAll("td");
+												var titleBarElem;
+
+												if( !!!this.flashCount )
+												{
+													for( var i = 0; i < titleBarElems.length; i++ )
+													{
+														titleBarElem = titleBarElems[i];
+														if( titleBarElem.classList.contains("aaThemeColorOneHighBackgroundColor") )
+														{
+															titleBarElem.classList.remove("aaThemeColorOneHighBackgroundColor");
+															titleBarElem.classList.add("aaThemeColorOneBackgroundColor");
+														}
+													}
+
+													clearInterval(this.flashInterval);
+													delete this.flashInterval;
+												}
+												else
+												{
+													for( var i = 0; i < titleBarElems.length; i++ )
+													{
+														titleBarElem = titleBarElems[i];
+														if( titleBarElem.classList.contains("aaThemeColorOneHighBackgroundColor") )
+														{
+															titleBarElem.classList.remove("aaThemeColorOneHighBackgroundColor");
+															titleBarElem.classList.add("aaThemeColorOneBackgroundColor");
+														}
+														else if(titleBarElem.classList.contains("aaThemeColorOneBackgroundColor"))
+														{
+															titleBarElem.classList.remove("aaThemeColorOneBackgroundColor");
+															titleBarElem.classList.add("aaThemeColorOneHighBackgroundColor");
+														}
+													}
+
+													this.flashCount--;
+												}
+											}.bind(aaModalMenu), 100);
+
+											aaModalMenu.flashCount = 6;
+										}
+									}
+								}.bind(modalContainer), true);
+
+								var modalHTML = "";
+
+								// header
+								var modalYPos = (window.innerHeight / 3) + "px";
+								var modalWindowHeaderHTML = arcadeHud.generateWindowHeaderHTML(title, "margin-left: auto; margin-right: auto; top: " + modalYPos + ";", true, true, "", "");
+								modalHTML += modalWindowHeaderHTML;
+
+								// body
+								modalHTML += '<div class="aaWindowPaneContent aaThemeColorTwoHighBackgroundColor aaThemeColorTwoLowBorderColor aaTitleTextSizeFontSize aaTextColorTwoColor" style="font-family: Arial;">';
+								modalHTML += text;//"Are you sure?";
+								modalHTML += "</div>";
+
+								modalHTML += '\
+									<table class="aaWindowActions">\
+										<tr>\
+											<td>\
+											</td>\
+											<td style="width: 1%; white-space: nowrap;">\
+												<input type="button" class="aaButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor" value="OK" />\
+												<input type="button" class="aaButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor" value="Cancel" />\
+											</td>\
+										</tr>\
+									</table>\
+								';
+
+								// footer
+								var modalWindowFooterHTML = arcadeHud.generateWindowFooterHTML();
+								modalHTML += modalWindowFooterHTML;
+
+								modalContainer.innerHTML = modalHTML;
+								aaModalMenu = modalContainer.querySelector(".aaWindow");
+								document.body.appendChild(modalContainer);
+
+								/*function TestLowerCaseAlphaNumeric(value) {
+								    const regex = /^[a-z0-9]+$/;
+								    return regex.test(value);
+								}*/
+
+								var buttons = modalContainer.querySelectorAll(".aaWindowActions input[type='button']");
+								buttons[0].addEventListener("click", function(e)
+								{
+									var val = document.querySelector('#petAnimSlot').value.toLowerCase();
+
+									aaModalMenu.parentNode.parentNode.removeChild(aaModalMenu.parentNode);
+									aaModalMenu = undefined;
+
+									confirmCallback(val);
+									//eval(yesAction);
+								}, true);
+
+								buttons[1].addEventListener("click", function(e)
+								{
+									aaModalMenu.parentNode.parentNode.removeChild(aaModalMenu.parentNode);
+									aaModalMenu = undefined;
+
+									//eval(noAction);
+								}, true);
+
+								var pane = modalContainer.querySelector('.aaWindowPaneContent');
+								pane.setAttribute('help', help);
+								arcadeHud.assignHelp(pane);
+							}
+
+							function createPetImportPrompt(title, text, help, confirmCallback)
+							{
+								if( !!aaModalMenu )
+								{
+									console.log("ERROR: A modal menu is already being displayed!");
+									return;
+								}
+
+								// Lets be modal.
+								var modalContainer = document.createElement("div");
+								modalContainer.style.cssText = "position: fixed; width: 100%; height: 100%; z-index: 99999; background-color: rgba(0, 0, 0, 0.8);";
+								modalContainer.addEventListener("click", function(e)
+								{
+									if( e.currentTarget !== e.target )
+									{
+										return;
+									}
+									else
+									{
+										if( !!!aaModalMenu.flashInterval )
+										{
+											aaModalMenu.flashInterval = setInterval(function()
+											{
+												var titleRow = this.querySelector("tr");
+												var titleBarElems = titleRow.querySelectorAll("td");
+												var titleBarElem;
+
+												if( !!!this.flashCount )
+												{
+													for( var i = 0; i < titleBarElems.length; i++ )
+													{
+														titleBarElem = titleBarElems[i];
+														if( titleBarElem.classList.contains("aaThemeColorOneHighBackgroundColor") )
+														{
+															titleBarElem.classList.remove("aaThemeColorOneHighBackgroundColor");
+															titleBarElem.classList.add("aaThemeColorOneBackgroundColor");
+														}
+													}
+
+													clearInterval(this.flashInterval);
+													delete this.flashInterval;
+												}
+												else
+												{
+													for( var i = 0; i < titleBarElems.length; i++ )
+													{
+														titleBarElem = titleBarElems[i];
+														if( titleBarElem.classList.contains("aaThemeColorOneHighBackgroundColor") )
+														{
+															titleBarElem.classList.remove("aaThemeColorOneHighBackgroundColor");
+															titleBarElem.classList.add("aaThemeColorOneBackgroundColor");
+														}
+														else if(titleBarElem.classList.contains("aaThemeColorOneBackgroundColor"))
+														{
+															titleBarElem.classList.remove("aaThemeColorOneBackgroundColor");
+															titleBarElem.classList.add("aaThemeColorOneHighBackgroundColor");
+														}
+													}
+
+													this.flashCount--;
+												}
+											}.bind(aaModalMenu), 100);
+
+											aaModalMenu.flashCount = 6;
+										}
+									}
+								}.bind(modalContainer), true);
+
+								var modalHTML = "";
+
+								// header
+								var modalYPos = (window.innerHeight / 3) + "px";
+								var modalWindowHeaderHTML = arcadeHud.generateWindowHeaderHTML(title, "margin-left: auto; margin-right: auto; top: " + modalYPos + ";", true, true, "", "");
+								modalHTML += modalWindowHeaderHTML;
+
+								// body
+								modalHTML += '<div class="aaWindowPaneContent aaThemeColorTwoHighBackgroundColor aaThemeColorTwoLowBorderColor aaTitleTextSizeFontSize aaTextColorTwoColor" style="font-family: Arial;">';
+								modalHTML += text;//"Are you sure?";
+								modalHTML += "</div>";
+
+								modalHTML += '\
+									<table class="aaWindowActions">\
+										<tr>\
+											<td>\
+											</td>\
+											<td style="width: 1%; white-space: nowrap;">\
+												<input type="button" class="aaButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor" value="OK" />\
+												<input type="button" class="aaButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor" value="Cancel" />\
+											</td>\
+										</tr>\
+									</table>\
+								';
+
+								// footer
+								var modalWindowFooterHTML = arcadeHud.generateWindowFooterHTML();
+								modalHTML += modalWindowFooterHTML;
+
+								modalContainer.innerHTML = modalHTML;
+								aaModalMenu = modalContainer.querySelector(".aaWindow");
+								document.body.appendChild(modalContainer);
+
+								var configElem = document.querySelector('#petConfigBox');
+
+								var buttons = modalContainer.querySelectorAll(".aaWindowActions input[type='button']");
+								buttons[0].addEventListener("click", function(e)
+								{
+									console.log('button 0');
+
+									aaModalMenu.parentNode.parentNode.removeChild(aaModalMenu.parentNode);
+									aaModalMenu = undefined;
+
+									confirmCallback(configElem.value);
+									//eval(yesAction);
+								}, true);
+
+								buttons[1].addEventListener("click", function(e)
+								{
+									console.log('button 1');
+
+									aaModalMenu.parentNode.parentNode.removeChild(aaModalMenu.parentNode);
+									aaModalMenu = undefined;
+
+									//eval(noAction);
+								}, true);
+
+								var pane = modalContainer.querySelector('.aaWindowPaneContent');
+								pane.setAttribute('help', help);
+								arcadeHud.assignHelp(pane);
+							}
+
+							function createPetConfigurePrompt(title, text, help, confirmCallback)
+							{
+								if( !!aaModalMenu )
+								{
+									console.log("ERROR: A modal menu is already being displayed!");
+									return;
+								}
+
+								// Lets be modal.
+								var modalContainer = document.createElement("div");
+								modalContainer.style.cssText = "position: fixed; width: 100%; height: 100%; z-index: 99999; background-color: rgba(0, 0, 0, 0.8);";
+								modalContainer.addEventListener("click", function(e)
+								{
+									if( e.currentTarget !== e.target )
+									{
+										return;
+									}
+									else
+									{
+										if( !!!aaModalMenu.flashInterval )
+										{
+											aaModalMenu.flashInterval = setInterval(function()
+											{
+												var titleRow = this.querySelector("tr");
+												var titleBarElems = titleRow.querySelectorAll("td");
+												var titleBarElem;
+
+												if( !!!this.flashCount )
+												{
+													for( var i = 0; i < titleBarElems.length; i++ )
+													{
+														titleBarElem = titleBarElems[i];
+														if( titleBarElem.classList.contains("aaThemeColorOneHighBackgroundColor") )
+														{
+															titleBarElem.classList.remove("aaThemeColorOneHighBackgroundColor");
+															titleBarElem.classList.add("aaThemeColorOneBackgroundColor");
+														}
+													}
+
+													clearInterval(this.flashInterval);
+													delete this.flashInterval;
+												}
+												else
+												{
+													for( var i = 0; i < titleBarElems.length; i++ )
+													{
+														titleBarElem = titleBarElems[i];
+														if( titleBarElem.classList.contains("aaThemeColorOneHighBackgroundColor") )
+														{
+															titleBarElem.classList.remove("aaThemeColorOneHighBackgroundColor");
+															titleBarElem.classList.add("aaThemeColorOneBackgroundColor");
+														}
+														else if(titleBarElem.classList.contains("aaThemeColorOneBackgroundColor"))
+														{
+															titleBarElem.classList.remove("aaThemeColorOneBackgroundColor");
+															titleBarElem.classList.add("aaThemeColorOneHighBackgroundColor");
+														}
+													}
+
+													this.flashCount--;
+												}
+											}.bind(aaModalMenu), 100);
+
+											aaModalMenu.flashCount = 6;
+										}
+									}
+								}.bind(modalContainer), true);
+
+								var modalHTML = "";
+
+								// header
+								var modalYPos = (window.innerHeight / 3) + "px";
+								var modalWindowHeaderHTML = arcadeHud.generateWindowHeaderHTML(title, "margin-left: auto; margin-right: auto; top: " + modalYPos + ";", true, true, "", "");
+								modalHTML += modalWindowHeaderHTML;
+
+								// body
+								modalHTML += '<div class="aaWindowPaneContent aaThemeColorTwoHighBackgroundColor aaThemeColorTwoLowBorderColor aaTitleTextSizeFontSize aaTextColorTwoColor" style="font-family: Arial;">';
+								modalHTML += text;//"Are you sure?";
+								modalHTML += "</div>";
+
+								modalHTML += '\
+									<table class="aaWindowActions">\
+										<tr>\
+											<td>\
+											</td>\
+											<td style="width: 1%; white-space: nowrap;">\
+												<input type="button" class="aaButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor" value="OK" />\
+												<input type="button" class="aaButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor" value="Cancel" />\
+											</td>\
+										</tr>\
+									</table>\
+								';
+
+								// footer
+								var modalWindowFooterHTML = arcadeHud.generateWindowFooterHTML();
+								modalHTML += modalWindowFooterHTML;
+
+								modalContainer.innerHTML = modalHTML;
+								aaModalMenu = modalContainer.querySelector(".aaWindow");
+								document.body.appendChild(modalContainer);
+
+								var runElem = document.querySelector('#petRunSpeed');
+								var walkElem = document.querySelector('#petWalkSpeed');
+								var nearElem = document.querySelector('#petNearDist');
+								var farElem = document.querySelector('#petFarDist');
+
+								var playAsPet = aaapi.cmdEx('getPetByEntityIndex', window.playAsPetEntityIndexNumber);
+								var petModel = playAsPet.model;
+								//console.log(JSON.stringify(playAsPet));
+								//console.log(playAsPet.model);
+								//console.log(JSON.stringify(window.pets));
+								for( var i = 0; i < window.pets.length; i++ ) {
+									if( window.pets[i].model == petModel ) {
+										var foundPet = window.pets[i];
+										//console.log('found match');
+										//console.log(JSON.stringify(window.pets[i]));
+										runElem.value = foundPet.runspeed;
+										walkElem.value = foundPet.walkspeed;
+										nearElem.value = foundPet.near;
+										farElem.value = foundPet.far;
+										break;
+									}
+								}
+
+								function TestLowerCaseAlphaNumeric(value) {
+								    const regex = /^[a-z0-9]+$/;
+								    return regex.test(value);
+								}
+
+								var buttons = modalContainer.querySelectorAll(".aaWindowActions input[type='button']");
+								buttons[0].addEventListener("click", function(e)
+								{
+									var data = {
+										runspeed: (runElem.value != '') ? runElem.value : runElem.placeholder,
+										walkspeed: (walkElem.value != '') ? walkElem.value : walkElem.placeholder,
+										near: (nearElem.value != '') ? nearElem.value : nearElem.placeholder,
+										far: (farElem.value != '') ? farElem.value : farElem.placeholder
+									};
+
+									aaapi.cmd('consoleCommand', "petupdate " + playAsPet.entityIndex + " runspeed " + data.runspeed + "; petupdate " + playAsPet.entityIndex + " walkspeed " + data.walkspeed + "; petupdate " + playAsPet.entityIndex + " near " + data.near + "; petupdate " + playAsPet.entityIndex + " far " + data.far);
+
+									aaModalMenu.parentNode.parentNode.removeChild(aaModalMenu.parentNode);
+									aaModalMenu = undefined;
+
+									confirmCallback(data);
+									//eval(yesAction);
+								}, true);
+
+								buttons[1].addEventListener("click", function(e)
+								{
+									aaModalMenu.parentNode.parentNode.removeChild(aaModalMenu.parentNode);
+									aaModalMenu = undefined;
+
+									//eval(noAction);
+								}, true);
+
+								var pane = modalContainer.querySelector('.aaWindowPaneContent');
+								pane.setAttribute('help', help);
+								arcadeHud.assignHelp(pane);
 							}
 
 							function confirmedDeleteScreenshot(shotId)
@@ -1982,6 +3398,216 @@
 							</table>
 						</div>
 
+						<div class="aaTabContent aaTextSize aaTextColorTwoColor aaThemeColorTwoHighBackgroundColor aaThemeColorTwoLowBorderColor" tabid="pets" style="border-radius: 4px; display: block; max-width: 1620px; pointer-events: all; padding: 8px;">
+
+
+
+			<center>
+				<table>
+					<tr>
+						<!--td><font class="aaThemeColorOneColor aaTitleText aaTextSizeFontSize" style="letter-spacing: 0.1em;">PETS</font>
+						</td--><td>
+							<select size="1" id="allPetsBox" class="helpNote aaTitleTextSizeFontSize" style="cursor: default; width: 100%; max-width: 250px; text-align: right; color: #000; background-color: transparent; border: 0; max-height: 150px;" help="Choose a pet to spawn into the world." onchange="petChosen(this.options[this.selectedIndex]);">
+								<option value="">Choose a pet...</option>
+							</select>
+						</td>
+						<td style="width: 1px;">
+							<div class="helpNote aaButton aaKeyValuesRowButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor" style="min-width: initial; padding: 6px; width: 18px; height: 18px; margin-left: 4px; display: inline-block; visibility: visible;" help="Read the instructions for how to use pets." onclick="commandFormatHelp();">
+								<script>
+									document.write(arcadeHud.generateIconHTML("help.png", 18, 18, "aaTextColorTwoHighColor"));
+								</script>
+							</div>
+						</td>
+					</tr>
+					<tr class="addDefaultPetsRow" style="display: none;">
+						<td align="center" colspan="2">
+							<div class="helpNote aaButton aaKeyValuesRowButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor" style="min-width: initial; padding: 12px; margin-left: 4px; display: inline-block; visibility: visible;" help="Read the instructions for how to use pets." onclick="addDefaultPets();">
+								Add Default Pets To The List
+							</div>
+						</td>
+					</tr>
+				</table>
+						<!--font class="aaThemeColorOneColor aaTitleText aaTitleTextSizeFontSize">Pets</font><br /><br /-->
+						<div id="petsContainer" style="white-space: nowrap; max-width: 1000px; overflow-x: auto; overflow-y: hidden;" class="aaScrollBars"></div>
+			</center>
+			<center>
+				<table class="petStuff petStuffHidden">
+					<tr>
+						<td width="50%" style="padding-right: 20px;">
+							<table>
+								<tr>
+									<td>
+										<font class="aaThemeColorOneColor aaTitleText aaTextSizeFontSize" style="letter-spacing: 0.1em;">BEHAVIOR</font>
+									</td>
+									<td>
+										<select id="petBehaviorList" class="helpNote aaTextSizeFontSize" style="width:  100%;" help="Controls how the pet behaves when you aren't playing as it." onchange="applyBehavior(this.value);">
+											<option value="0">idle</option>
+											<option value="1">look</option>
+											<option value="2">follow</option>
+										</select>
+									</td>
+									<td></td>
+								</tr>
+								<tr>
+									<td>
+										<font class="aaThemeColorOneColor aaTitleText aaTextSizeFontSize" style="letter-spacing: 0.1em;">ANIMATION</font>
+									</td>
+									<td>
+										<select id="sequenceNamesBox" class="helpNote aaTextSizeFontSize petInputSelect" style="width:  100%;" help="Plays an animation on the pet." onchange="playSequence(this.value);"></select>
+									</td>
+									<td>
+										<div class="helpNote aaButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor" help="Set this animation as one of the pet's sequences." style="min-width: initial; padding: 4px; width: 22px; height: 22px; display: inline-block;" onclick="petAnimSaveClicked();">
+											<script>
+												document.write(arcadeHud.generateIconHTML("animavataricon.png", 22, 22, "aaTextColorTwoColor"));
+											</script>
+										</div>
+									</td>
+								</tr>
+								<tr>
+									<td colspan="2">
+										<div class="aaButton aaBigButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor helpNote" onclick="configurePetClicked();" help="Setup the walk/run speeds and follow distances for this pet." style="display: block; width: auto; padding-top: 4px; padding-bottom: 4px;">
+											Configure Pet
+										</div>
+									</td>
+									<td>
+										<div class="helpNote aaButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor" help="Import a configuration for this avatar model." style="min-width: initial; padding: 4px; width: 22px; height: 22px; display: inline-block;" onclick="petImportClicked();">
+											<script>
+												document.write(arcadeHud.generateIconHTML("avatarimporticon.png", 22, 22, "aaTextColorTwoColor"));
+											</script>
+										</div>
+									</td>
+								</tr>
+							</table>
+						</td>
+						<td width="50%" style="padding-left: 20px;">
+							<table>
+								<tr>
+									<td align="right"><font class="aaThemeColorOneColor aaTitleText aaTextSizeFontSize" style="letter-spacing: 0.1em;">OUTFIT</font></td><td>
+										<select id="petOutfitsList" help="You attach props to your pet to create outfits." class="helpNote aaTextSizeFontSize"></select>
+									</td>
+									<td align="right">
+										<div class="dotContainer" style="width: 120px; text-align: center;">
+																	<div class="dotPlaceholder">
+																		<font style="font-family: Arial; font-size: 8px;">MANAGE OUTFIT</font>
+																	</div>
+																	<div class="dotContent">
+																		<div class="helpNote aaButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor" help="SAVE / UPDATE current outfit into this slot." style="min-width: initial; padding: 4px; width: 22px; height: 22px; display: inline-block;" onclick="petOutfitSaveClicked();">
+																			<script>
+																				document.write(arcadeHud.generateIconHTML("saveicon.png", 22, 22, "aaTextColorTwoColor"));
+																			</script>
+																		</div>
+																		<div class="helpNote aaButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor" help="DELETE this outfit." style="min-width: initial; padding: 4px; width: 22px; height: 22px; display: inline-block;" onclick="confirmPetOutfitDelete();">
+																			<script>
+																				document.write(arcadeHud.generateIconHTML("trashicon.png", 22, 22, "aaTextColorTwoColor"));
+																			</script>
+																		</div>
+																		<div class="helpNote aaButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor" help="Name & create a NEW outfit using the models currently attached." style="min-width: initial; padding: 4px; width: 22px; height: 22px; display: inline-block;" onclick="createNewPetOutfitClicked();">
+																			<script>
+																				document.write(arcadeHud.generateIconHTML("plusicon.png", 22, 22, "aaTextColorTwoColor"));
+																			</script>
+																		</div>
+																	</div>
+																</div>
+									</td>
+								</tr>
+								<tr>
+									<td colspan="3">
+										<div class="aaButton aaBigButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor helpNote" onclick="aaapi.cmd('consoleCommand', 'petoutfitstrip;'); aaapi.cmd('deactivateInputMode');" help="Sets outfit to NONE and removes all attached models." style="display: block; width: auto; padding-top: 4px; padding-bottom: 4px;">
+											Strip
+										</div>
+									</td>
+								</tr>
+								<tr>
+									<td colspan="3">
+										<div class="aaButton aaBigButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor helpNote" onclick="unspawnPet();" help="Unspawns this pet from the current world." style="display: block; width: auto; padding-top: 4px; padding-bottom: 4px;">
+											Remove Pet
+										</div>
+									</td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+				</table>
+			</center>
+							<!--div class="aaButton aaBigButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor helpNote" onclick="aaapi.cmd('consoleCommand', 'petoutfitsave;');" help="Yadda." style="display: block; width: auto;">
+								Save
+							</div>
+
+							<div class="aaButton aaBigButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor helpNote" onclick="aaapi.cmd('consoleCommand', 'petoutfitload default;');" help="Yadda." style="display: block; width: auto;">
+								Load Default
+							</div>
+
+							<div class="aaButton aaBigButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor helpNote" onclick="aaapi.cmd('consoleCommand', 'petoutfitload 0;');" help="Yadda." style="display: block; width: auto;">
+								Load 0
+							</div>
+
+							<div class="aaButton aaBigButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor helpNote" onclick="aaapi.cmd('consoleCommand', 'petoutfitload 1;');" help="Yadda." style="display: block; width: auto;">
+								Load 1
+							</div>
+
+							<div class="aaButton aaBigButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor helpNote" onclick="aaapi.cmd('consoleCommand', 'petoutfitload 2;');" help="Yadda." style="display: block; width: auto;">
+								Load 2
+							</div>
+
+							<div class="aaButton aaBigButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor helpNote" onclick="aaapi.cmd('consoleCommand', 'petoutfitload 3;');" help="Yadda." style="display: block; width: auto;">
+								Load 3
+							</div>
+
+							<div class="aaButton aaBigButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor helpNote" onclick="aaapi.cmd('consoleCommand', 'petoutfitload 4;');" help="Yadda." style="display: block; width: auto;">
+								Load 4
+							</div>
+
+							<div class="aaButton aaBigButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor helpNote" onclick="aaapi.cmd('consoleCommand', 'petoutfitload 5;');" help="Yadda." style="display: block; width: auto;">
+								Load 5
+							</div>
+
+							<div class="aaButton aaBigButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor helpNote" onclick="aaapi.cmd('consoleCommand', 'petoutfitload 6;');" help="Yadda." style="display: block; width: auto;">
+								Load 6
+							</div>
+
+							<div class="aaButton aaBigButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor helpNote" onclick="aaapi.cmd('consoleCommand', 'petoutfitload 7;');" help="Yadda." style="display: block; width: auto;">
+								Load 7
+							</div>
+
+							<div class="aaButton aaBigButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor helpNote" onclick="aaapi.cmd('consoleCommand', 'petoutfitload 8;');" help="Yadda." style="display: block; width: auto;">
+								Load 8
+							</div>
+
+							<div class="aaButton aaBigButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor helpNote" onclick="aaapi.cmd('consoleCommand', 'petoutfitload 9;');" help="Yadda." style="display: block; width: auto;">
+								Load 9
+							</div>
+
+							<div class="aaButton aaBigButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor helpNote" onclick="aaapi.cmd('consoleCommand', 'petoutfitload 10;');" help="Yadda." style="display: block; width: auto;">
+								Load 10
+							</div-->
+
+							<div style="display: none;">
+								<select id="petList"></select>
+								<table class="aaKeyValueTable" style="width: 100%;" cellspacing="0"></table>
+								<br />
+								<table width="100%">
+									<tr>
+										<td width="50%">
+											<div class="aaButton aaBigButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor helpNote" onclick="spawnAirBoat();" help="Spawn the selected pet into the world." style="display: block; width: auto;">
+												<script>
+													document.write(arcadeHud.generateIconHTML("peticon.png", 32, 32, "aaTextColorTwoHighColor"));
+												</script>
+												Spawn Pet
+											</div>
+										</td>
+										<td width="50%">
+											<div class="aaButton aaBigButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor helpNote" onclick="removeSpawnedPets();" help="Settings like model offset and model angles only impact NEW pets you spawn. It is often useful to remove all the old ones from your current world. Also, camera offsets are global, so it's best to only have 1 type of pet in the world at a time." style="display: block; width: auto;">
+												<script>
+													document.write(arcadeHud.generateIconHTML("petsremoveallicon.png", 32, 32, "aaTextColorTwoHighColor"));
+												</script>
+												Remove Spawned Pets From World
+											</div>
+										</td>
+									</tr>
+								</table>
+							</div>
+						</div>
+
 						<div class="aaTabContent aaTextSize aaTextColorTwoColor aaThemeColorTwoHighBackgroundColor aaThemeColorTwoLowBorderColor" tabid="transfers" style="border-radius: 4px; display: block; max-width: 1620px; pointer-events: all; padding: 8px;">
 							<div id="downloadsStuff">
 								<div class="aaTitleTextSize aaTitleText aaTextColorTwoColor">DOWNLOADS (<div id="downloadedCount" class="transferCount">0</div>/<div id="downloadCount" class="transferCount">0</div>)</div>
@@ -2351,6 +3977,48 @@
 					"command": "cmd_avatar_menu",//"avatar_menu;",
 					"closeMenu": true,
 					"help": "Change your avatar to one from a custom favorites list you've prepared."
+				},
+				{
+					"title": "Camera Collisions Toggle",//cameracollisionsicon
+					"command": "cmd_cam_collision_toggle",
+					"closeMenu": true,
+					"help": "Toggles 3rd person camera collisions."
+				},
+				{
+					"title": "Player Look-Spot Toggle",
+					"command": "cmd_lookspot_toggle",
+					"closeMenu": true,
+					"help": "Shows an arrow indicator at your avatar's feet and another indicator of where you are aiming. Useful in 3rd person view."
+				},
+				{
+					"title": "Pet Attach Object",
+					"command": "cmd_pet_wear",
+					"closeMenu": true,
+					"help": "Attaches/detaches the object you are looking at to your pet. (The object needs to have been manually attached previously.)"
+				},
+				{
+					"title": "Pet Remove All",
+					"command": "cmd_pet_remove_all",
+					"closeMenu": true,
+					"help": "Unspawns all of the pets that are currently in this world."
+				},
+				{
+					"title": "Pet Target",
+					"command": "cmd_pet_target",
+					"closeMenu": true,
+					"help": "Sets the point you are looking at as the place 'follow' pets want to go to. (Set at your own feet to make them follow you instead.)"
+				},
+				{
+					"title": "Pet Next",
+					"command": "cmd_pet_next",
+					"closeMenu": true,
+					"help": "Jump to the next pet."
+				},
+				{
+					"title": "Pet Previous",
+					"command": "cmd_pet_prev",
+					"closeMenu": true,
+					"help": "Jump to the previous pet."
 				},
 				{
 					"title": "Wheel Spin",
@@ -2758,6 +4426,34 @@
 				{
 					command: 'cmd_wheel_menu',
 					icon: 'wheelicon'
+				},
+				{
+					command: 'cmd_cam_collision_toggle',
+					icon: 'cameracollisionsicon'
+				},
+				{
+					command: 'cmd_lookspot_toggle',
+					icon: 'lookspoticon'
+				},
+				{
+					command: 'cmd_pet_wear',
+					icon: 'addwearicon'
+				},
+				{
+					command: 'cmd_pet_remove_all',
+					icon: 'removeallavataricon'
+				},
+				{
+					command: 'cmd_pet_target',
+					icon: 'avatartargeticon'
+				},
+				{
+					command: 'cmd_pet_next',
+					icon: 'avatarnexticon'
+				},
+				{
+					command: 'cmd_pet_prev',
+					icon: 'avatarprevicon'
 				},
 				/*{
 					command: 'ent_fire !player setmodelscale 0.1; cl_forwardspeed 50; cl_sidespeed 50; cl_backspeed 50;',
@@ -5103,14 +6799,16 @@
 						tile = arcadeHud.createTile(backpackEntry, container, tileMode, "", onSpawnClick, tileWidth, tileHeight);
 
 
-					var objectId = aaapi.cmdEx("getObjectWithItemId", backpackEntry.info.id, false);
-					if( objectId !== "" )
-					{
-						var object = aaapi.cmdEx("getObject", objectId);
-						if( !!object )//&& object.entity > -1)
+					if( backpackEntry && backpackEntry.info ) {
+						var objectId = aaapi.cmdEx("getObjectWithItemId", backpackEntry.info.id, false);
+						if( objectId !== "" )
 						{
-							tile.classList.add('existingObject');
-							tile.classList.add('aaTextColorOneBorderColor');
+							var object = aaapi.cmdEx("getObject", objectId);
+							if( !!object )//&& object.entity > -1)
+							{
+								tile.classList.add('existingObject');
+								tile.classList.add('aaTextColorOneBorderColor');
+							}
 						}
 					}
 

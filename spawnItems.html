@@ -153,10 +153,22 @@
 				}
 
 				// start spawning stuff
-				var val = arcadeHud.getParameterByName("max");
-				aaapi.cmd("spawnNearestObject", parseFloat(arcadeHud.getParameterByName("max")));
-				//var fadeDistMax = aaapi.cmdEx("getConVarValue", "aapropfademax");
-				//aaapi.cmd("spawnNearestObject", parseFloat(fadeDistMax));
+				/*var notFirstSpawn = arcadeHud.getParameterByName("notFirstSpawn");
+				if( notFirstSpawn != '1' && aaapi.cmdEx('getConVarValue', 'manual_spawn_mode') == '1' )
+				{
+					setTimeout(function()
+					{
+						//aaapi.cmd("manual_spawn");
+						aaapi.cmd('deactivateInputMode', false);
+					}, 1);
+				}
+				else
+				{*/
+					var val = arcadeHud.getParameterByName("max");
+					aaapi.cmd("spawnNearestObject", parseFloat(arcadeHud.getParameterByName("max")));
+					//var fadeDistMax = aaapi.cmdEx("getConVarValue", "aapropfademax");
+					//aaapi.cmd("spawnNearestObject", parseFloat(fadeDistMax));
+				//}
 			}
 
 			function loadDefaultImage()

@@ -783,6 +783,103 @@
 				}
 			}
 
+
+
+
+
+
+/*
+			// TEMP FAKE LIST STUFF THAT SHOWS ONLY ITEMS THAT HAVE A CERTAIN HARD-CODED STICKER...
+			// test - items that have a certain sticker
+			var rebuildHardcodeWinList = false;
+			if( rebuildHardcodeWinList ) {
+				var g_allStickers;
+				var g_cachedAchievementStickers;
+				function fetchAllStickers(forceDetect)
+				{
+					if( !!!forceDetect )
+						g_allStickers = localStorage.getItem("allStickers");
+
+					if( !!!forceDetect && !!g_allStickers )
+						g_allStickers = JSON.parse(g_allStickers);
+					else
+					{
+						g_allStickers = {};
+
+						var allStickers = (!!forceDetect) ? aaapi.cmdEx("detectAllStickers") : aaapi.cmd("getAllStickers");
+						for( var i = 0; i < allStickers.length; i++ )
+						{
+							g_allStickers[allStickers[i]] = {
+								"file": "stickers/" + allStickers[i] + ".png"
+							};
+						}
+						localStorage.setItem("allStickers", JSON.stringify(g_allStickers));
+					}
+
+					g_cachedAchievementStickers = localStorage.getItem("achievementStickers");
+					if( !!g_cachedAchievementStickers )
+						g_cachedAchievementStickers = JSON.parse(g_cachedAchievementStickers);
+					else
+						g_cachedAchievementStickers = {};
+
+					for( var x in g_cachedAchievementStickers )
+						g_allStickers[x] = g_cachedAchievementStickers[x];
+				}
+				fetchAllStickers(!!!g_allStickers);
+				//console.log(JSON.stringify(Object.keys(g_allStickers)));
+
+				//41361625cc44df07f81a620eac766468
+
+				var archive = {};
+		        var keys = Object.keys(localStorage);
+		        var i = keys.length;
+
+		        //console.log(JSON.stringify(list[0]));
+		        list = [];
+
+		        var key;
+		    	while ( i-- ) {
+		    		key = keys[i];
+		    		if( key.indexOf('trans') == 0 ) {
+						// check if this image has any stickers
+						var oldTransform = localStorage.getItem( keys[i] );//localStorage.getItem("trans" + this.itemId);
+
+						if( !!!oldTransform )
+							oldTransform = {};
+						else
+							oldTransform = JSON.parse(oldTransform);
+
+						if( !!oldTransform.stickers && oldTransform.stickers.length > 0 ) {
+							for( var j = 0; j < oldTransform.stickers.length; j++ ) {
+								var sticker = oldTransform.stickers[j];
+								if( sticker.name == '41361625cc44df07f81a620eac766468' ) {	// trophy sticker
+									var itemId = key.substring(5);
+									list.push({item: itemId});
+									//var item = aaapi.cmdEx('getLibraryItem', itemId);
+									//console.log(item.title);
+									//list.push(item);
+									break;
+								}
+							}
+						}
+		    		}
+		        	//archive[ keys[i] ] = localStorage.getItem( keys[i] );
+		    	}
+				//var list = arcadeHud.createFavoritesList(null, "Untitled List");
+				//arcadeHud.setActiveFavoritesList(list.id);
+				localStorage.setItem('hardcodeWinList', JSON.stringify(list));
+			}
+			list = JSON.parse(localStorage.getItem('hardcodeWinList'));
+*/
+
+
+
+
+
+
+
+
+
 			syncFetchNextTile();
 
 			var fetchBeat = null;

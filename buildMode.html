@@ -982,7 +982,7 @@
 				display:  none;
 			}
 
-			.petStuffNeeded.petStuffTable {
+			.petStuffNeeded.petStuffTable, .allPetStuffNeeded.petStuffTable {
 				display:  table;
 			}
 
@@ -1006,6 +1006,10 @@
 			.petEmptyBones .petNonHoverHide {
 				display: none !important;
 			}
+
+			.petStuffTable:not(.allPetStuffNeeded) .allPetStuffOnly {
+				display:  none;
+			}
 		</style>
 
 		<!--<div id="pageContent">-->
@@ -1028,24 +1032,24 @@
 								</script>
 							</div>
 						</td>
-						<td align="center" valign="middle">
+						<td align="center" valign="middle" class="allPetStuffOnly">
 							<div style="display: inline-block;" class="helpNote" help="This object can be attached to your pet's outfit." onclick="document.querySelector('.petStuffTable').classList.toggle('petStuffHidden'); aaapi.cmd('consoleCommand', 'thirdperson');">
 								<script>
 									document.write(arcadeHud.generateIconHTML("addwearicon.png", 42, 42, "aaTextColorOneColor"));
 								</script>
 							</div>
 						</td>
-						<td class="petNonHoverHide">
+						<td class="petNonHoverHide allPetStuffOnly">
 							<select id="attachmentNamesBox" class="aaTitleTextSizeFontSize petInputSelect helpNote" help="Choose a bone to attach to."></select>
 						</td>
-						<td class="petNonHoverHide">
+						<td class="petNonHoverHide allPetStuffOnly">
 							<div style="display: inline-block;" class="helpNote" help="Attach/detach the object to your pet's outfit. (Outfits can be saved from the PETS TAB.)" onclick="attachTo(document.querySelector('#attachmentNamesBox').value);">
 								<script>
 									document.write(arcadeHud.generateIconHTML("tackicon.png", 42, 42, "aaTextColorOneColor"));
 								</script>
 							</div>
 						</td>
-						<td class="petNoBonesCell">
+						<td class="petNoBonesCell allPetStuffOnly">
 							<div class="petNoBones">No attachment bones available.</div>
 						</td>
 					</tr>
@@ -1124,9 +1128,19 @@
 						};
 						localStorage.setItem('pets', JSON.stringify(existingPets));
 
-						aaapi.cmd('consoleCommand', "petupdate " + window.playAsPetEntityIndexNumber + " scale " + scaleElem.value + "; petupdate " + window.playAsPetEntityIndexNumber + " pos \"" + existingPets[currentModelId].pos + "\"; petupdate " + window.playAsPetEntityIndexNumber + " rot \"" + existingPets[currentModelId].rot + "\"");
+						var playAsPet = null;
+						playAsPet = aaapi.cmdEx('getPetByEntityIndex', window.playAsPetEntityIndexNumber);
+						if( playAsPet ) {
+							var playAsPetModel = playAsPet.model;
+							var modelId = aaapi.cmdEx('generateHashId', playAsPetModel);
+							if( currentModelId == modelId ) {
+								console.log('match');
+								aaapi.cmd('consoleCommand', "petupdate " + window.playAsPetEntityIndexNumber + " scale " + scaleElem.value + "; petupdate " + window.playAsPetEntityIndexNumber + " pos \"" + existingPets[currentModelId].pos + "\"; petupdate " + window.playAsPetEntityIndexNumber + " rot \"" + existingPets[currentModelId].rot + "\"; petsave");
+							}
+						}
 
-						console.log('added pet ' + modelFile);
+						//console.log('added pet ' + modelFile);
+						aaapi.cmd("addToastMessage", "Added/updated the F9 Pets Menu w/ " + modelFile);
 					}
 				</script>
 
@@ -2148,6 +2162,9 @@
 				{
 					titleElem.innerHTML = "PROPS";
 					if( playAsPetEntityIndexNumber >= 0 ) {
+						document.querySelector('.petStuffTable').classList.add('allPetStuffNeeded');
+					}
+					else {
 						document.querySelector('.petStuffTable').classList.add('petStuffNeeded');
 					}
 				}

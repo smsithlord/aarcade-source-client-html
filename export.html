@@ -142,8 +142,10 @@
 					<div style="display: none;">
 						<input id="msfbox" onclick="changed(this);" type="radio" name="exportFormat" value="msf" style="margin-right: 6px;" /><label for="msfbox">Meta Shortcut Format XML</label>
 					</div>
+					<input id="vmfbox" onclick="changed(this);" type="radio" name="exportFormat" value="vmf" style="margin-right: 6px;" /><label for="vmfbox">VMF Props</label><br />
 					<input id="jmlbox" onclick="changed(this);" type="radio" name="exportFormat" value="jml" style="margin-right: 6px;" /><label for="jmlbox">Janus JML</label><br />
 					<input onclick="changed(this);" type="radio" name="exportFormat" value="text" style="margin-right: 6px;" id="textbox" /><label for="textbox">Plain Text</label><br />
+					<input onclick="changed(this);" type="radio" name="exportFormat" value="titles" style="margin-right: 6px;" id="titlesbox" /><label for="titlesbox">Plain Text (Titles only)</label><br />
 					<input onclick="changed(this);" type="radio" name="exportFormat" value="urls" style="margin-right: 6px;" id="urlsbox" /><label for="urlsbox">Plain Text (URLs only)</label><br />
 					<input onclick="changed(this);" type="radio" name="exportFormat" value="yturls" style="margin-right: 6px;" id="yturlsbox" /><label for="yturlsbox">Plain Text (YouTube URLs only)</label><br />
 					<input onclick="changed(this);" type="radio" name="exportFormat" value="ytplaylist" style="margin-right: 6px;" id="ytplaylistbox" /><label for="ytplaylistbox">YouTube Playlist</label>
@@ -179,6 +181,55 @@
 		<a href="javascript:location.reload();" class="devReload" style="display: block !important;">&bull;&nbsp;</a>
 
 		<script>
+			/*var defaultVMF_prop_dynamic_override = {
+				"entity": {
+					"classname": "prop_static",
+					"angles": "0 0 0",
+					"model": "models/nt/props_doors/door_glasstech02.mdl",
+					//"modelscale": "1.0",
+					//"skin": "0",
+					//"disableshadows": "1",
+					"SetBodyGroup": "0",
+					"origin": "0 0 0",
+					//"solid": "0"
+				}
+			};*/
+
+			var defaultVMF_prop_dynamic_override = {
+				"entity": {
+					"classname": "prop_dynamic_override",
+					"angles": "0 0 0",
+					"model": "models/nt/props_doors/door_glasstech02.mdl",
+					"modelscale": "1.0",
+					"skin": "0",
+					"disableshadows": "1",
+					"SetBodyGroup": "0",
+					"origin": "0 0 0",
+					"solid": "0"
+				}
+			};
+
+			function jsonToKeyValuesString(jsonObj) {
+			    var result = "";
+			    for (var key in jsonObj) {
+			        if (typeof jsonObj[key] === 'object') {
+			        	if( key == 'entity' ) {
+			            	result += key + '\n{\n';
+			        	}
+			        	else {
+			            	result += '"' + key + '"\n\t{\n';
+			            }
+			            for (var innerKey in jsonObj[key]) {
+			                result += '\t"' + innerKey + '" "' + jsonObj[key][innerKey] + '"\n';
+			            }
+			            result += '}\n';
+			        } else {
+			            result += '"' + key + '" "' + jsonObj[key] + '"\n';
+			        }
+			    }
+			    return result;
+			}
+
 			var resultBoxElem = document.querySelector("#resultBox");
 			var resultTextBoxElem = resultBoxElem.querySelector("textarea");
 			var selectionRadiosElem = document.querySelector("#selectionRadios");
@@ -192,10 +243,12 @@
 			var nonShortcutElem = document.querySelector("#nonshortbox");
 			var textboxElem = document.querySelector("#textbox");
 			var urlsElem = document.querySelector("#urlsbox");
+			var titlesElem = document.querySelector("#titlesbox");
 			var yturlsElem = document.querySelector("#yturlsbox");
 			var ytplaylistElem = document.querySelector("#ytplaylistbox");
 			var msfElem = document.querySelector("#msfbox");
 			var jmlElem = document.querySelector("#jmlbox");
+			var vmfElem = document.querySelector("#vmfbox");
 			var jsonboxElem = document.querySelector("#jsonbox");
 
 			var selectedObjectElem = document.querySelector("#selectedObject");
@@ -306,11 +359,17 @@
 					jmlElem.checked = false;
 					jmlElem.disabled = true;
 
+					vmfElem.checked = false;
+					vmfElem.disabled = true;
+
 					textboxElem.checked = false;
 					textboxElem.disabled = true;
 
 					urlsElem.checked = false;
 					urlsElem.disabled = true;
+
+					titlesElem.checked = false;
+					titlesElem.disabled = true;
 
 					yturlsElem.checked = false;
 					yturlsElem.disabled = true;
@@ -507,7 +566,67 @@
 					}
 				}
 
-				if( checkedFormatRadio.value === "urls" )
+				if( checkedFormatRadio.value === "titles" )
+				{
+					if( checkedSelectionRadio.value === "full" )
+					{
+						var worldInfo = aaapi.cmdEx("getWorldInfo");
+						if( worldInfo.success )
+						{
+							var infoTitle = "Current World Info:\n";
+
+							var instanceTitle = worldInfo.instance.title;
+							if( !!!instanceTitle || instanceTitle === "" )
+								instanceTitle = "Unnamed";
+
+							resultTextBoxElem.value += "\tWorld Title: " + instanceTitle + "\n";
+
+							if( worldInfo.map.title !== "" )
+								resultTextBoxElem.value += "\tMap Title: " + worldInfo.map.title + "\n";
+
+							if( worldInfo.map.platforms[arcadeHud.platformId].file !== "" )
+								resultTextBoxElem.value += "\tMap Name: " + worldInfo.map.platforms[arcadeHud.platformId].file + "\n";
+						}
+
+						var response = aaapi.cmdEx("getNearestObjectToPlayerLook");
+						while(response.success)
+						{
+							if( !!response.entry && !!response.entry.itemId && response.entry.itemId !== "" && response.entry.itemId !== response.entry.modelId )
+							{
+								var item = aaapi.cmdEx("getLibraryItem", response.entry.itemId);
+								if( !!item )
+								{
+									var type = allTypes[item.type];
+									var typeText = '';
+									if( type && type.title != 'other' && type.title != '' ) {
+										typeText = type.title;
+									}
+									if( typeText ) {
+										urls.push('(media: ' + typeText + ') ' + item.title);
+									}
+									else {
+										urls.push(item.title);	
+									}
+								}
+							}
+							else if( !!response.entry && response.entry.modelId && response.entry.modelId !== "" ) {
+								var model = aaapi.cmdEx("getLibraryModel", response.entry.modelId);
+								if( !!model )
+								{
+									urls.push('(prop) ' + model.title);
+								}
+							}
+
+							response = aaapi.cmdEx("getNextNearestObjectToPlayerLook");
+						}
+
+						for( var i = 0; i < urls.length; i++ )
+							resultTextBoxElem.value += urls[i] + "\n";
+
+						copyToClipboard(resultTextBoxElem);
+					}
+				}
+				else if( checkedFormatRadio.value === "urls" )
 				{
 					if( checkedSelectionRadio.value === "selected" )
 					{
@@ -1144,6 +1263,129 @@
 							copyToClipboard(resultTextBoxElem);
 						}
 				}
+				else if( checkedFormatRadio.value === "vmf" )
+				{
+					var filterModelId = null;
+					if( checkedSelectionRadio.value === "selected" )
+					{
+						//var filterModel = aaapi.cmdEx("getLibraryModel", entityInfo.model.id);
+						//filterModelFile = model.platforms[arcadeHud.platformId].file;
+						filterModelId = entityInfo.model.id;
+					}
+
+					var entries = [];
+					var payloadItem;
+
+					var response = aaapi.cmdEx("getNearestObjectToPlayerLook");
+					while(response.success)
+					{
+						if( !!response.entry && !!response.entry.itemId && response.entry.modelId && response.entry.itemId == response.entry.modelId && (!filterModelId || filterModelId == response.entry.modelId) )
+						{
+							//goodEntries.push(response.entry);
+							entries.push({
+								object: aaapi.cmdEx("getObject", response.entry.id),
+								model: aaapi.cmdEx("getLibraryModel", response.entry.modelId)
+							});
+						}
+
+						response = aaapi.cmdEx("getNextNearestObjectToPlayerLook");
+					}
+
+/*{"entity":139,"id":"-w1ajPJ3lhNR6hHZrDIK","itemId":"3c46311f","modelId":"3c46311f","title":"models\\map_detail\\plaza_bench.mdl"}
+"entity": {
+					"classname": "prop_dynamic_override",
+					"angles": "0 0 0",
+					"model": "models/nt/props_doors/door_glasstech02.mdl",
+					"modelscale": "1.0",
+					"skin": "0",
+					"SetBodyGroup": "0",
+					"origin": "0 0 0"
+				}
+
+							if( !!object )
+							{
+								if( !!object.origin && object.origin !== "" )
+									resultTextBoxElem.value += "Origin: " + prepDataField(object.origin) + "\n";
+
+								if( !!object.angles && object.angles !== "" )
+									resultTextBoxElem.value += "Angles: " + prepDataField(object.angles) + "\n";
+
+								if( !!object.scale && object.scale !== "" && object.scale != 1 )
+									resultTextBoxElem.value += "Scale: " + prepDataField(object.scale) + "\n";
+
+								if( !!object.body && object.body !== "" )
+									resultTextBoxElem.value += "Body: " + prepDataField(object.body) + "\n";
+
+								if( object.hasOwnProperty("slave") && object.slave )
+								{
+									var slaveVal = (object.slave) ? 1 : 0;
+									resultTextBoxElem.value += "Slave: " + slaveVal + "\n";
+								}
+
+								if( !!object.anim && object.anim.toLowerCase() !== "idle" && object.anim !== "" )
+									resultTextBoxElem.value += "Anim: " + prepDataField(object.anim) + "\n";
+							}
+
+
+
+								if( !!model )
+								{
+									if( model.title === "" )
+										model.title = "Untitled";
+
+									var hr = "";
+									for( var j = 0; j < model.title.length; j++ )
+										hr += "=";
+
+									resultTextBoxElem.value += hr + "\n";
+									resultTextBoxElem.value += model.title + "\n";
+									resultTextBoxElem.value += hr + "\n";
+
+									if( doesNeedField(model, "modelfile") )
+										resultTextBoxElem.value += "Model: " + prepDataField(model.platforms[arcadeHud.platformId].file) + "\n";
+
+				*/
+
+					var entityTemplate = defaultVMF_prop_dynamic_override.entity;
+					var objectKeys = Object.keys(entityTemplate);
+
+					for( var i = 0; i < entries.length; i++ )
+					{
+						var entry = entries[i];
+						var object = entry.object;
+						var model = entry.model;
+
+						// format the data into KV snippets and append to the textarea
+						var vmfEntry = {entity: {}};
+						var vmfEntity = vmfEntry.entity;
+						for( var j = 0; j < objectKeys.length; j++ ) {
+							var key = objectKeys[j];
+							if( key == 'angles') {
+								vmfEntity[key] = prepDataField(object.angles);
+							}
+							else if( key == 'model') {
+								vmfEntity[key] = prepDataField(model.platforms[arcadeHud.platformId].file).replace(/\\/g, '/');
+							}
+							else if( key == 'modelscale') {
+								vmfEntity[key] = prepDataField(object.scale);
+							}
+							else if( key == 'SetBodyGroup') {
+								vmfEntity[key] = prepDataField(object.body);
+							}
+							else if( key == 'origin') {
+								vmfEntity[key] = prepDataField(object.origin);
+							}
+							else {
+								vmfEntity[key] = entityTemplate[key];
+							}
+							//else if( key == 'skin') {
+							//	vmfEntity[key] = prepDataField(object.scale);
+							//}
+						}
+						resultTextBoxElem.value += "\n" + jsonToKeyValuesString(vmfEntry);
+						copyToClipboard(resultTextBoxElem);
+					}
+				}
 				else if( checkedFormatRadio.value === "jml" )
 				{
 						var item = aaapi.cmdEx("getLibraryItem", entityInfo.item.id);
@@ -1682,8 +1924,8 @@
 									}
 								}
 
-								if( goodEntries[i].modelId !== goodEntries[i].itemId )
-								{
+								//if( goodEntries[i].modelId !== goodEntries[i].itemId )
+								//{
 									var model = (!!!library.models[goodEntries[i].modelId]) ? aaapi.cmdEx("getLibraryModel", goodEntries[i].modelId) : null;
 									if( !!model )
 									{
@@ -1701,10 +1943,10 @@
 											"workshopid": model.platforms[arcadeHud.platformId].workshopid,
 											"mountid": model.platforms[arcadeHud.platformId].mountid
 										};
-
+//console.log('adding model: ' + modelPayload.title);
 										library.models[goodEntries[i].modelId] = modelPayload;
 									}
-								}
+								//}
 							}
 
 							resultTextBoxElem.value += JSON.stringify(library);

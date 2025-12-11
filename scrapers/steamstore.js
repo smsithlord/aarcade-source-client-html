@@ -44,43 +44,35 @@ arcadeHud.addScraper({
 
 		response.reference = referenceURL;
 
-		//http://store.steampowered.com/app/480490/Prey/?snr=1_4_4__100
+		// get appId extracted
+		var appId = referenceURL.substring(0, referenceURL.length-1);
+		appId = appId.substring(appId.lastIndexOf("/") + 1);
 
-		/*
-		var referenceValue = url;
-		if( referenceValue.indexOf("https") === 0 )
-			referenceValue = "http" + referenceValue.substring(5);
-		referenceValue = referenceValue.substring(0, referenceValue.indexOf("?"));
-		response.reference = referenceValue;
-		*/				
+		// file
+		response.file = appId;
 
 		// description
 		var descriptionElem = doc.querySelector("meta[name='Description']");
 		response.description = descriptionElem.getAttribute("content");
 
-		// title
-		var titleElem = doc.querySelector("span[itemprop='name']");
-		response.title = titleElem.innerHTML;
+		// get app data ready
+		var appData = doc.querySelector('.gamehighlight_desktopcarousel[data-featuretarget="gamehighlight-desktopcarousel"]');
+		appData = appData.getAttribute('data-props');
+		appData = JSON.parse(appData);
 
-		var appId = referenceURL.substring(0, referenceURL.length-1);
-		appId = appId.substring(appId.lastIndexOf("/") + 1);
+		// title
+		response.title = appData.appName;
 
 		// screen
-		var screenElem = doc.querySelector(".highlight_strip_screenshot");
-		var screenId = screenElem.getAttribute("id");
-		var screenId = screenId.substring(17);//thumb_screenshot_
-		response.screen = "http://cdn.akamai.steamstatic.com/steam/apps/" + appId + "/" + screenId;
+		var screen = appData.screenshots[0].full;
+
+		if (screen.indexOf('https://') === 0) {
+		    screen = 'http://' + screen.substring(8);	// convert to http for AArcade image loader
+		}
+		response.screen = screen;
 
 		// marquee
 		response.marquee = "http://cdn.akamai.steamstatic.com/steam/apps/" + appId + "/header.jpg";
-
-		// preview
-		var previewElem = doc.querySelector(".highlight_strip_movie");
-		if( !!previewElem )
-			response.preview = "http://store.steampowered.com/video/" + appId;
-
-		// file
-		response.file = appId;
 
 		// type
 		response.type = "pc";
@@ -92,15 +84,15 @@ arcadeHud.addScraper({
 		var validForScrape = false;
 		var redirect = false;
 
-		// title
-		//var titleElem = doc.querySelector("span[itemprop='name']");
-		//if( titleElem )
+		//var screenElem = doc.querySelector(".highlight_strip_screenshot");
+		//if( !!screenElem )
 		//	validForScrape = true;
-		//response.title = titleElem.innerHTML;
 
-		var screenElem = doc.querySelector(".highlight_strip_screenshot");
-		if( !!screenElem )
+		var appData = doc.querySelector('.gamehighlight_desktopcarousel[data-featuretarget="gamehighlight-desktopcarousel"]');
+		appData = appData.getAttribute('data-props');
+		if( appData ) {
 			validForScrape = true;
+		}
 
 		callback({"validForScrape": validForScrape, "redirect": redirect});
 	},

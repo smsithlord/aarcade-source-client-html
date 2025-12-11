@@ -611,7 +611,8 @@
 
 			function fetchDynamicEventsData()
 			{
-				// get the client's IP
+				// get the client's IP	// OBSOLETE COMMENT! - This is just fetching a JSON object here - comment is from somewhere else.
+				// TODO: Should FEATURED list just be removed? (Thus removing need to fetch anything from the server.)
 				var xmlHttp = new XMLHttpRequest();
 				xmlHttp.onreadystatechange = function()
 				{ 
@@ -895,56 +896,868 @@
 			</table>
 		</div>
 
-<!--
-<input type="button" onclick="window.location.href ='radialMenu.html';" style="position: fixed; left: 20px; top: 40px;" value="WUBALUBADUBDUB QUEST CLUE" />
+<!-- ent_fire prop_vehicle_jeep SetBodyGroup 2 -->
+<!--input type="button" onclick="window.location.href ='cardmaker.html';" style="position: fixed; left: 20px; top: 40px;" value="WUBALUBADUBDUB QUEST CLUE" />
 
-<input type="button" onclick="spawnCar('models/smcars/2015_charger.mdl', 'scripts/vehicles/supercars/dodge_charger15.txt')" style="position: fixed; left: 20px; top: 70px;" value="SPAWN CHARGER" />
-<input type="button" onclick="spawnCar('models/tdmcars/gtav/police.mdl', 'scripts/vehicles/tdmcars/gtav/police.txt')" style="position: fixed; left: 20px; top: 100px;" value="SPAWN POLICE" />
-<input type="button" onclick="spawnCar('models/tdmcars/gtav/police3.mdl', 'scripts/vehicles/tdmcars/gtav/police3.txt')" style="position: fixed; left: 20px; top: 140px;" value="SPAWN POLICE 3" />
-<input type="button" onclick="spawnCar('models/tdmcars/gtav/zentorno.mdl', 'scripts/vehicles/tdmcars/gtav/zentorno.txt')" style="position: fixed; left: 20px; top: 170px;" value="SPAWN zentorno" />
-<input type="button" onclick="spawnCar('models/tdmcars/gtav/utillitruck.mdl', 'scripts/vehicles/tdmcars/gtav/utillitruck.txt')" style="position: fixed; left: 20px; top: 200px;" value="SPAWN utillitruck" />
-<input type="button" onclick="spawnCar('models/tdmcars/gtav/turismor.mdl', 'scripts/vehicles/tdmcars/gtav/turismor.txt')" style="position: fixed; left: 160px; top: 200px;" value="SPAWN turismor" />
-<input type="button" onclick="spawnCar('models/tdmcars/gtav/tractor.mdl', 'scripts/vehicles/tdmcars/gtav/tractor.txt')" style="position: fixed; left: 160px; top: 170px;" value="SPAWN tractor" />
-<input type="button" onclick="spawnCar('models/tdmcars/gtav/riot.mdl', 'scripts/vehicles/tdmcars/gtav/riot.txt')" style="position: fixed; left: 160px; top: 140px;" value="SPAWN riot" />
-<input type="button" onclick="spawnCar('models/tdmcars/gtav/rebel.mdl', 'scripts/vehicles/tdmcars/gtav/rebel.txt')" style="position: fixed; left: 160px; top: 100px;" value="SPAWN rebel" />
-<input type="button" onclick="spawnCar('models/tdmcars/gtav/mesa3.mdl', 'scripts/vehicles/tdmcars/gtav/mesa3.txt')" style="position: fixed; left: 160px; top: 70px;" value="SPAWN mesa3" />
-<input type="button" onclick="spawnCar('models/tdmcars/gtav/gauntlet.mdl', 'scripts/vehicles/tdmcars/gtav/gauntlet.txt')" style="position: fixed; left: 20px; top: 650px;" value="SPAWN gauntlet" />
-<input type="button" onclick="spawnCar('models/tdmcars/gtav/futo.mdl', 'scripts/vehicles/tdmcars/gtav/futo.txt')" style="position: fixed; left: 20px; top: 680px;" value="SPAWN futo" />
-<input type="button" onclick="spawnCar('models/tdmcars/gtav/camper.mdl', 'scripts/vehicles/tdmcars/gtav/camper.txt')" style="position: fixed; left: 20px; top: 710px;" value="SPAWN camper" />
-<input type="button" onclick="spawnCar('models/tdmcars/gtav/bus.mdl', 'scripts/vehicles/tdmcars/gtav/bus.txt')" style="position: fixed; left: 20px; top: 740px;" value="SPAWN bus" />
-<input type="button" onclick="spawnCar('models/tdmcars/gtav/baletrailer.mdl', 'scripts/vehicles/tdmcars/gtav/baletrailer.txt')" style="position: fixed; left: 20px; top: 770px;" value="SPAWN baletrailer" />
-<input type="button" onclick="spawnCar('models/tdmcars/gtav/adder.mdl', 'scripts/vehicles/tdmcars/gtav/adder.txt')" style="position: fixed; left: 20px; top: 800px;" value="SPAWN adder" />
-<input type="button" onclick="spawnCar('models/smcars/ferrari_599xx/ferrari_599xx_evo.mdl', 'scripts/vehicles/smcars/ferrari_599xx.txt')" style="position: fixed; left: 20px; top: 830px;" value="SPAWN ferrari_599xx" />
-<input type="button" onclick="spawnCar('models/smcars/2017_ford_mondeo.mdl', 'scripts/vehicles/supercars/13_mondeo.txt')" style="position: fixed; left: 20px; top: 860px;" value="SPAWN 13_mondeo" />
-<input type="button" onclick="spawnCar('models/smcars/2014_ford_explorer_utility.mdl', 'scripts/vehicles/supercars/14_explorer.txt')" style="position: fixed; left: 20px; top: 890px;" value="SPAWN 14_explorer" />
-<input type="button" onclick="spawnCar('models/smcars/bmw_530d_saloon.mdl', 'scripts/vehicles/supercars/bmw530dfacelift_saloon.txt')" style="position: fixed; left: 20px; top: 920px;" value="SPAWN bmw530dfacelift_saloon" />
-<input type="button" onclick="spawnCar('models/crsk_autos/ford/bronco_1982.mdl', 'scripts/vehicles/crsk_autos/crsk_ford_bronco_1982.txt')" style="position: fixed; left: 20px; top: 950px;" value="SPAWN crsk_ford_bronco_1982" />
-<input type="button" onclick="spawnCar('models/jp_works/jeepjp_works.mdl', 'scripts/vehicles/forney/jpark/jpwrangler.txt')" style="position: fixed; left: 220px; top: 950px;" value="SPAWN jp" />
-<input type="button" onclick="spawnCar('models/jp_works/explorerjp_works.mdl', 'scripts/vehicles/forney/jpark/jpexplorer.txt')" style="position: fixed; left: 220px; top: 920px;" value="SPAWN jp2" />
-<input type="button" onclick="spawnCar('models/jp_works/jp1_works.mdl', 'scripts/vehicles/jp1.txt')" style="position: fixed; left: 220px; top: 890px;" value="SPAWN jp3" />
-<input type="button" onclick="spawnCar('models/jp_works/jeepjpmuddy_works.mdl', 'scripts/vehicles/forney/jpark/jpwrangler.txt')" style="position: fixed; left: 220px; top: 830px;" value="SPAWN jp4" />
-<input type="button" onclick="spawnCar('models/jp_works/jp2_works.mdl', 'scripts/vehicles/jp1.txt')" style="position: fixed; left: 220px; top: 860px;" value="SPAWN jp5" />
-<input type="button" onclick="spawnCar('models/ctvehicles/monster_jam/grave_digger.mdl', 'scripts/vehicles/ctvehicles/ctv_grave_digger.txt')" style="position: fixed; left: 220px; top: 770px;" value="SPAWN gravedigger" />
+<select id="carList" style="position: fixed; left: 20px; top: 520px;"></select>
+<input id="spawnCarButton" type="button" style="position: fixed; left: 20px; top: 560px;" value="Spawn Car" />
+<input onclick="aaapi.cmd('ttsspeak', 'We are playing Mario All-Stars together on SNES.');" type="button" style="position: fixed; left: 20px; top: 600px;" value="Test" />
+
+<select id="petList" style="position: fixed; left: 20px; top: 610px;"></select>
+<input id="spawnPetButton" type="button" style="position: fixed; left: 20px; top: 650px;" value="Spawn Pet" /-->
+
+<script>
+				/*
+					std::string forward = (args.ArgC() > 2) ? args.Arg(2) : "";
+					std::string idle = (args.ArgC() > 3) ? args.Arg(3) : "";
+					float flScale = (args.ArgC() > 4) ? Q_atof(args.Arg(4)) : 1.0f;
+					std::string rot = (args.ArgC() > 5) ? args.Arg(5) : "";
+					std::string pos = (args.ArgC() > 6) ? args.Arg(6) : "";
+					float flNear = (args.ArgC() > 7) ? Q_atof(args.Arg(7)) : 100.0f;
+					float flFar = (args.ArgC() > 8) ? Q_atof(args.Arg(8)) : 200.0f;
+					float flSpeed = (args.ArgC() > 9) ? Q_atof(args.Arg(9)) : 100.0f;
+
+					g_pAnarchyManager->SpawnPet(model, forward, idle, flScale, rot, pos, flNear, flFar, flSpeed);
+				*/
 
 
+	var spawnPetButton = document.getElementById('spawnPetButton');
+	var petList = document.getElementById('petList');
+	var pets = [];
+	/*pets.push({
+		name: 'Gromit',
+		model: 'models\\Player\\hellinspector\\gromit_pm\\gromit_pm.mdl',
+		forward: "menu_walk",
+		idle: "menu_gman",
+		scale: 1.0,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 150.0,
+		speed: 40.0
+	});*/
+	/*pets.push({
+		name: 'Kylo',
+		model: 'models\\kryptonite\\sbfii_kylo_ren\\sbfii_kylo_ren2.mdl',
+		forward: "menu_walk",
+		idle: "idle_all_01",
+		scale: 1.0,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 130.0,
+		speed: 90.0
+	});*/
+	
+	/*pets.push({	// FIX PETS WITH ZERO ANIMATIONS!
+		name: 'Spiny',
+		model: 'models\\Super Mario\\Common Enemies\\spiny.mdl',
+		run: "ref",
+		walk: "ref",
+		fall: "ref",
+		idle: "ref",
+		scale: 1,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 150.0,
+		runspeed: 10.0,
+		walkspeed: 10.0
+	});*/
+	
 
-		<input type="button" onclick="bigFatFunctionTest();" style="position: fixed; left: 20px; top: 260px;" value="WUBALUBADUBDUB test" />
-		<input type="button" onclick="remoteScraperTest();" style="position: fixed; left: 20px; top: 490px;" value="WUBALUBADUBDUB remote test" />
+	/*pets.push({
+		name: 'Sith Bot',
+		model: 'models\\sithlord\\sithbot.mdl',
+		forward: "run",
+		idle: "idle",
+		scale: 3.65,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 130.0,
+		speed: 170.0
+	});
 
-		<input type="button" onclick="bigFatFunctionTest22();" style="position: fixed; left: 20px; top: 290px;" value="WUBALUBADUBDUB pet" />
+	pets.push({
+		name: 'Sith Bug',
+		model: 'models\\sithlord\\sithbug.mdl',
+		forward: "run",
+		idle: "idle",
+		scale: 1.0,
+		rot: "0 0 0",
+		pos: "0 0 4",
+		near: 50.0,
+		far: 90.0,
+		speed: 60.0
+	});*/
+
+	pets.push({
+		name: 'Mall Girl',
+		model: 'models\\ported\\mallgirl.mdl',
+		forward: "forward",
+		idle: "idle",
+		scale: 1.0,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 130.0,
+		speed: 120.0
+	});
+
+	pets.push({
+		name: 'Fat Kid',
+		model: 'models\\ported\\fatkid.mdl',
+		forward: "forward",
+		idle: "idle",
+		scale: 1.0,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 130.0,
+		speed: 110.0
+	});
+
+	pets.push({
+		name: 'Ryuk',
+		model: 'models\\konnie\\jumpforce\\ryuk.mdl',
+		forward: "menu_walk",
+		idle: "idle_slam",
+		scale: 1.0,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 130.0,
+		speed: 100.0
+	});
+	pets.push({
+		name: 'Yoshino',
+		model: 'models\\Player\\tenn\\yoshino_pm.mdl',
+		forward: "menu_walk",
+		idle: "idle_all_01",
+		scale: 1.0,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 130.0,
+		speed: 100.0
+	});
+	pets.push({
+		name: 'Freddy',
+		model: 'models\\splinks\\fnaf\\freddy\\player_freddy.mdl',
+		forward: "menu_walk",
+		idle: "idle_all_01",
+		scale: 1.2,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 130.0,
+		speed: 130.0
+	});
+	pets.push({
+		name: 'Hogan',
+		model: 'models\\hogan.mdl',
+		forward: "menu_walk",
+		idle: "idle_all_01",//"taunt_persistence_base",
+		scale: 1.15,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 130.0,
+		speed: 100.0
+	});
+	pets.push({
+		name: 'ATAT',
+		model: 'models\\helios\\vehicles\\atat.mdl',
+		forward: "walking",
+		idle: "",//"taunt_persistence_base",
+		scale: 1.0,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 130.0,
+		speed: 70.0
+	});
+	pets.push({
+		name: 'ATST',
+		model: 'models\\helios\\vehicles\\atst.mdl',
+		forward: "walking",
+		idle: "",//"taunt_persistence_base",
+		scale: 1.0,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 130.0,
+		speed: 340.0
+	});
+	pets.push({
+		name: 'Parrot',
+		model: 'models\\props_island\\macaw_parrot.mdl',
+		forward: "fly",
+		idle: "idle01",//"taunt_persistence_base",
+		scale: 0.7,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 130.0,
+		speed: 140.0
+	});
+	pets.push({
+		name: 'JarJar',
+		model: 'models\\Player\\starwars\\jarjar.mdl',
+		forward: "menu_walk",
+		idle: "idle_all_01",//"taunt_persistence_base",
+		scale: 1.15,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 130.0,
+		speed: 100.0
+	});
+	pets.push({
+		name: 'Daffy Duck',
+		model: 'models\\Player\\dduck\\daffyduck.mdl',
+		forward: "menu_walk",
+		idle: "idle_all_01",
+		scale: 0.45,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 150.0,
+		speed: 40.0
+	});
+
+	pets.push({
+		name: 'Mario Tennis',
+		model: 'models\\Player\\assasinge\\mario_tennis.mdl',
+		forward: "menu_walk",
+		idle: "menu_combine",
+		scale: 1.0,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 150.0,
+		speed: 40.0
+	});
+
+	pets.push({
+		name: 'Scentist Mario',
+		model: 'models\\Player\\assasinge\\scientistmario.mdl',
+		forward: "menu_walk",
+		idle: "menu_combine",
+		scale: 1.0,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 150.0,
+		speed: 40.0
+	});
+
+	pets.push({
+		name: 'Doctor Mario',
+		model: 'models\\Player\\assasinge\\doctormario.mdl',
+		forward: "menu_walk",
+		idle: "menu_combine",
+		scale: 1.0,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 150.0,
+		speed: 40.0
+	});
+
+	pets.push({
+		name: 'Chef Mario',
+		model: 'models\\Player\\assasinge\\chefmario.mdl',
+		forward: "menu_walk",
+		idle: "menu_combine",
+		scale: 1.0,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 150.0,
+		speed: 40.0
+	});
+
+	pets.push({
+		name: 'Aviator Mario',
+		model: 'models\\Player\\assasinge\\aviator_mario.mdl',
+		forward: "menu_walk",
+		idle: "idle_slam",
+		scale: 1.0,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 150.0,
+		speed: 40.0
+	});
+
+	pets.push({
+		name: 'Blackhawk',
+		model: 'models\\vehicles\\heli_blackhawk_ani_skybox.mdl',
+		forward: "fly_loop",
+		idle: "fly_loop",
+		scale: 1.0,
+		rot: "0 90 0",
+		pos: "0 0 -30",
+		near: 50.0,
+		far: 150.0,
+		speed: 100.0
+	});
+	pets.push({
+		name: 'Raptor',
+		model: 'models\\legrem\\dinos\\raptor\\raptor4.mdl',
+		forward: "walk_all",
+		idle: "idle_angry",
+		scale: 0.75,
+		rot: "0 -90 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 150.0,
+		speed: 100.0
+	});
+	pets.push({
+		name: 'Rhino',
+		model: 'models\\animal_ragd\\piratecat_rhino.mdl',
+		forward: "run",
+		idle: "idle_inactive",
+		scale: 0.75,
+		rot: "0 -90 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 150.0,
+		speed: 350.0
+	});
+	pets.push({
+		name: 'Elephant',
+		model: 'models\\animal_ragd\\piratecat_elephant.mdl',
+		forward: "run",
+		idle: "idle_inactive",
+		scale: 0.5,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 150.0,
+		speed: 70.0
+	});
+	pets.push({
+		name: 'King Cobra',
+		model: 'models\\piratecat_animals\\piratecat_kingcobra.mdl',
+		forward: "run",
+		idle: "idle_inactive",
+		scale: 1.0,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 150.0,
+		speed: 50.0
+	});
+	pets.push({
+		name: 'Anaconda',
+		model: 'models\\piratecat_animals\\piratecat_anaconda.mdl',
+		forward: "run",
+		idle: "idle",
+		scale: 0.5,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 150.0,
+		speed: 170.0
+	});
+	pets.push({
+		name: 'Lara Croft',
+		model: 'models\\player\\fwhykay\\tomb_raider_7\\lara_croft\\lara_croft_classic\\lara_classic_flashback_tr7mesh.mdl',
+		forward: "menu_walk",
+		idle: "idle_all_01",
+		scale: 1,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 150.0,
+		speed: 120.0
+	});
+	pets.push({
+		name: 'Xenians',
+		model: 'models\\xenians\\controller.mdl',
+		forward: "Run_all",
+		idle: "attack2",
+		scale: 0.5,
+		rot: "0 0 0",
+		pos: "0 0 30",
+		near: 50.0,
+		far: 150.0,
+		speed: 200.0
+	});
+	pets.push({
+		name: 'Ghost',
+		model: 'models\\npc\\ghost.mdl',
+		forward: "alert01",
+		idle: "chase01",
+		scale: 1,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 150.0,
+		speed: 200.0
+	});
+	pets.push({
+		name: 'Ghoul',
+		model: 'models\\Player\\goblin\\goblin.mdl',
+		forward: "menu_walk",
+		idle: "cidle_all",
+		scale: 2.5,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 100.0,
+		far: 200.0,
+		speed: 270.0
+	});
+	pets.push({
+		name: 'Robocop',
+		model: 'models\\robocop_chrome\\slow.mdl',
+		forward: "cwalk_pistol",//run_pistol
+		idle: "idlenoise",
+		scale: 1.1,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 130.0,
+		speed: 170.0
+	});
+	pets.push({
+		name: 'Superman',
+		model: 'models\\player\\superman\\slow_pub.mdl',
+		forward: "menu_walk",
+		idle: "menu_combine",
+		scale: 1.1,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 130.0,
+		speed: 170.0
+	});
+	pets.push({
+		name: 'Superman',
+		model: 'models\\konnie\\asapgaming\\fortnite\\harleyquinn.mdl',
+		forward: "menu_walk",
+		idle: "idle_all_01",
+		scale: 1.0,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 130.0,
+		speed: 90.0
+	});
+	pets.push({
+		name: 'Marty McFly',
+		model: 'models\\Figuren\\player\\martymcfly.mdl',
+		forward: "menu_walk",
+		idle: "idle_all_01",
+		scale: 0.9,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 130.0,
+		speed: 170.0
+	});
+	pets.push({
+		name: 'Yoda',
+		model: 'models\\tfa\\comm\\gg\\pm_sw_yodanojig.mdl',
+		forward: "menu_walk",
+		idle: "idle_all_01",
+		scale: 0.45,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 130.0,
+		speed: 40.0
+	});
+	pets.push({
+		name: 'Tarkin',
+		model: 'models\\player\\valley\\tarkin.mdl',
+		forward: "menu_walk",
+		idle: "idle_all_01",
+		scale: 1.0,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 130.0,
+		speed: 100.0
+	});
+	pets.push({
+		name: 'Kane',
+		model: 'models\\wwe\\kane.mdl',
+		forward: "menu_walk",
+		idle: "idle_all_01",
+		scale: 1.5,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 130.0,
+		speed: 190.0
+	});
+	pets.push({
+		name: 'Croc Man',
+		model: 'models\\Player\\bobert\\aocroc.mdl',
+		forward: "menu_walk",
+		idle: "idle_slam",
+		scale: 1.1,
+		rot: "0 0 0",
+		pos: "0 0 0",
+		near: 50.0,
+		far: 130.0,
+		speed: 120.0
+	});
+
+	for( var i = 0; i < pets.length; i++ ) {
+		var pet = pets[i];
+		var option = document.createElement('option');
+		option.value = pet.name;
+		option.pet = pet;
+		option.text = pet.name;
+		petList.appendChild(option);
+	}
+
+	spawnPetButton.addEventListener('click', function() {
+		var option = petList.options[petList.selectedIndex];
+		spawnPet(option.pet);
+	});
+
+	function spawnPet(pet) {
+		var commandText = "spawn_pet \"" + pet.model + "\" \"" + pet.run + "\" \"" + pet.walk + "\" \"" + pet.idle + "\" \"" + pet.fall + "\" " + pet.scale + " \"" + pet.rot + "\"  \"" + pet.pos + "\" " + pet.near + " " + pet.far + " " + pet.runspeed + " " + pet.walkspeed + ";";
+		aaapi.cmd('consoleCommand', commandText);
+
+		/*if( model && vscript ) {
+			var commandText = "createcar \"" + model + "\" \"" + vscript + "\";";
+			aaapi.cmd('consoleCommand', commandText);
+		}
+		else if( model ) {
+			var commandText = "createcar \"" + model + "\";";
+			aaapi.cmd('consoleCommand', commandText);
+		}
+		else {
+			var commandText = "createcar;";
+			aaapi.cmd('consoleCommand', commandText);
+		}*/
+	}
+</script>
+
+<script>
+	var spawnCarButton = document.getElementById('spawnCarButton');
+	var carList = document.getElementById('carList');
+	var cars = [];
+	cars.push({
+		name: 'Charger',
+		model: 'models/smcars/2015_charger.mdl',
+		script: 'scripts/vehicles/supercars/dodge_charger15.txt'
+	});
+
+	cars.push({
+		name: 'Police',
+		model: 'models/tdmcars/gtav/police.mdl',
+		script: 'scripts/vehicles/tdmcars/gtav/police.txt'
+	});
+	
+	cars.push({
+		name: 'Police 3',
+		model: 'models/tdmcars/gtav/police3.mdl',
+		script: 'scripts/vehicles/tdmcars/gtav/police3.txt'
+	});
+	
+	cars.push({
+		name: 'Zentorno',
+		model: 'models/tdmcars/gtav/zentorno.mdl',
+		script: 'scripts/vehicles/tdmcars/gtav/zentorno.txt'
+	});
+	
+	cars.push({
+		name: 'Utility Truck',
+		model: 'models/tdmcars/gtav/utillitruck.mdl',
+		script: 'scripts/vehicles/tdmcars/gtav/utillitruck.txt'
+	});
+	
+	cars.push({
+		name: 'Turismor',
+		model: 'models/tdmcars/gtav/turismor.mdl',
+		script: 'scripts/vehicles/tdmcars/gtav/turismor.txt'
+	});
+	
+	cars.push({
+		name: 'Tractor',
+		model: 'models/tdmcars/gtav/tractor.mdl',
+		script: 'scripts/vehicles/tdmcars/gtav/tractor.txt'
+	});
+	
+	cars.push({
+		name: 'Riot',
+		model: 'models/tdmcars/gtav/riot.mdl',
+		script: 'scripts/vehicles/tdmcars/gtav/riot.txt'
+	});
+	
+	cars.push({
+		name: 'Rebel',
+		model: 'models/tdmcars/gtav/rebel.mdl',
+		script: 'scripts/vehicles/tdmcars/gtav/rebel.txt'
+	});
+	
+	cars.push({
+		name: 'Mesa 3',
+		model: 'models/tdmcars/gtav/mesa3.mdl',
+		script: 'scripts/vehicles/tdmcars/gtav/mesa3.txt'
+	});
+	
+	cars.push({
+		name: 'Gauntlet',
+		model: 'models/tdmcars/gtav/gauntlet.mdl',
+		script: 'scripts/vehicles/tdmcars/gtav/gauntlet.txt'
+	});
+	
+	cars.push({
+		name: 'Futo',
+		model: 'models/tdmcars/gtav/futo.mdl',
+		script: 'scripts/vehicles/tdmcars/gtav/futo.txt'
+	});
+	
+	cars.push({
+		name: 'Camper',
+		model: 'models/tdmcars/gtav/camper.mdl',
+		script: 'scripts/vehicles/tdmcars/gtav/camper.txt'
+	});
+	
+	cars.push({
+		name: 'bus',
+		model: 'models/tdmcars/gtav/bus.mdl',
+		script: 'scripts/vehicles/tdmcars/gtav/bus.txt'
+	});
+	
+	cars.push({
+		name: 'baletrailer',
+		model: 'models/tdmcars/gtav/baletrailer.mdl',
+		script: 'scripts/vehicles/tdmcars/gtav/baletrailer.txt'
+	});
+	
+	cars.push({
+		name: 'adder',
+		model: 'models/tdmcars/gtav/adder.mdl',
+		script: 'scripts/vehicles/tdmcars/gtav/adder.txt'
+	});
+	
+	cars.push({
+		name: 'ferrari_599xx',
+		model: 'models/smcars/ferrari_599xx/ferrari_599xx_evo.mdl',
+		script: 'scripts/vehicles/smcars/ferrari_599xx.txt'
+	});
+	
+	cars.push({
+		name: '13_mondeo',
+		model: 'models/smcars/2017_ford_mondeo.mdl',
+		script: 'scripts/vehicles/supercars/13_mondeo.txt'
+	});
+	
+	cars.push({
+		name: '14_explorer',
+		model: 'models/smcars/2014_ford_explorer_utility.mdl',
+		script: 'scripts/vehicles/supercars/14_explorer.txt'
+	});
+	
+	cars.push({
+		name: 'bmw530dfacelift_saloon',
+		model: 'models/smcars/bmw_530d_saloon.mdl',
+		script: 'scripts/vehicles/supercars/bmw530dfacelift_saloon.txt'
+	});
+	
+	cars.push({
+		name: 'crsk_ford_bronco_1982',
+		model: 'models/crsk_autos/ford/bronco_1982.mdl',
+		script: 'scripts/vehicles/crsk_autos/crsk_ford_bronco_1982.txt'
+	});
+	
+	cars.push({
+		name: 'jpwrangler',
+		model: 'models/jp_works/jeepjp_works.mdl',
+		script: 'scripts/vehicles/forney/jpark/jpwrangler.txt'
+	});
+	
+	cars.push({
+		name: 'jpexplorer',
+		model: 'models/jp_works/explorerjp_works.mdl',
+		script: 'scripts/vehicles/forney/jpark/jpexplorer.txt'
+	});
+	
+	cars.push({
+		name: 'jp1',
+		model: 'models/jp_works/jp1_works.mdl',
+		script: 'scripts/vehicles/jp1.txt'
+	});
+	
+	cars.push({
+		name: 'jpwrangler',
+		model: 'models/jp_works/jeepjpmuddy_works.mdl',
+		script: 'scripts/vehicles/forney/jpark/jpwrangler.txt'
+	});
+	
+	cars.push({
+		name: 'jp1',
+		model: 'models/jp_works/jp2_works.mdl',
+		script: 'scripts/vehicles/jp1.txt'
+	});
+	
+	cars.push({
+		name: 'ctv_grave_digger',
+		model: 'models/ctvehicles/monster_jam/grave_digger.mdl',
+		script: 'scripts/vehicles/ctvehicles/ctv_grave_digger.txt'
+	});
+	
+	cars.push({
+		name: 'belair',
+		model: 'models/sentry/belair.mdl',
+		script: 'scripts/vehicles/sentry/belair.txt'
+	});
+	
+	cars.push({
+		name: 'shelbycobra',
+		model: 'models/sentry/shelbycobra.mdl',
+		script: 'scripts/vehicles/sentry/cobra427.txt'
+	});
+	
+	cars.push({
+		name: 'manstertreeeuck',
+		model: 'models/sentry/manstertreeeuck.mdl',
+		script: 'scripts/vehicles/sentry/manstercuda.txt'
+	});
+	
+	cars.push({
+		name: 'zr1',
+		model: 'models/sentry/zr1.mdl',
+		script: 'scripts/vehicles/sentry/zr1.txt'
+	});
+	
+	cars.push({
+		name: 'lotus98t',
+		model: 'models/kg22/lotus98t.mdl',
+		script: 'scripts/vehicles/kg22/lotus98t.txt'
+	});
+	
+	cars.push({
+		name: 'nissan_skyline_und',
+		model: 'models/ganimator/nfs_heat/nissan_skyline_und.mdl',
+		script: 'vehicles/nfs_heat/edsky.txt'
+	});
+	
+	cars.push({
+		name: 'nissan_350z_und2',
+		model: 'models/ganimator/nfs_heat/nissan_350z_und2.mdl',
+		script: 'vehicles/nfs_heat/fafrdraptor.txt'
+	});
+	
+	cars.push({
+		name: 'polestar_1_joe',
+		model: 'models/ganimator/nfs_heat/polestar_1_joe.mdl',
+		script: 'vehicles/nfs_heat/jopolestar.txt'
+	});
+	
+	cars.push({
+		name: 'bmw_m3_gtr_mw',
+		model: 'models/ganimator/nfs_heat/bmw_m3_gtr_mw.mdl',
+		script: 'vehicles/nfs_heat/mwbmw.txt'
+	});
+	
+	cars.push({
+		name: 'ford_raptor_payback',
+		model: 'models/ganimator/nfs_heat/ford_raptor_payback.mdl',
+		script: 'vehicles/nfs_heat/ra350z.txt'
+	});
+	
+	cars.push({
+		name: 'suzuki_kingquad',
+		model: 'models/lonewolfie/suzuki_kingquad.mdl',
+		script: 'vehicles/lwcars/suzuki_kingquad.txt'
+	});
+
+	cars.push({
+		name: 'polaris_6x6',
+		model: 'models/lonewolfie/polaris_6x6.mdl',
+		script: 'vehicles/lwcars/polaris_6x6.txt'
+	});
+	
+	cars.push({
+		name: 'polaris_4x4',
+		model: 'models/lonewolfie/polaris_4x4.mdl',
+		//script: 'vehicles/lwcars/polaris_4x4.txt'
+		script: 'scripts/vehicles/sithquad.txt'
+	});
+
+	
+	//cars.push({
+	//	name: '',
+	//	model: '',
+	//	script: ''
+	//});
+
+	for( var i = 0; i < cars.length; i++ ) {
+		var car = cars[i];
+		var option = document.createElement('option');
+		option.value = car.name;
+		option.car = car;
+		option.text = car.name;
+		carList.appendChild(option);
+	}
+
+	spawnCarButton.addEventListener('click', function() {
+		var option = carList.options[carList.selectedIndex];
+		spawnCar(option.car.model, option.car.script);
+	});
+
+	function spawnCar(model, vscript) {
+		if( model && vscript ) {
+			var commandText = "createcar \"" + model + "\" \"" + vscript + "\";";
+			aaapi.cmd('consoleCommand', commandText);
+		}
+		else if( model ) {
+			var commandText = "createcar \"" + model + "\";";
+			aaapi.cmd('consoleCommand', commandText);
+		}
+		else {
+			var commandText = "createcar;";
+			aaapi.cmd('consoleCommand', commandText);
+		}
+	}
+</script>
+
+
+		<!--input type="button" onclick="bigFatFunctionTest();" style="position: fixed; left: 20px; top: 100px;" value="WUBALUBADUBDUB test" />
+		<input type="button" onclick="remoteScraperTest();" style="position: fixed; left: 20px; top: 150px;" value="WUBALUBADUBDUB remote test" />
+
+		<input type="button" onclick="window.location='aarchives_uploader.html';" style="position: fixed; left: 20px; top: 180px;" value="archives test" /-->
+
+		<!--input type="button" onclick="bigFatFunctionTest22();" style="position: fixed; left: 20px; top: 290px;" value="WUBALUBADUBDUB pet" />
 		<input type="button" onclick="bigFatFunctionTest23();" style="position: fixed; left: 20px; top: 320px;" value="WUBALUBADUBDUB pet 2" />
 		<input type="button" onclick="bigFatFunctionTest24();" style="position: fixed; left: 20px; top: 350px;" value="WUBALUBADUBDUB pet 3" />
 		<input type="button" onclick="bigFatFunctionTest25();" style="position: fixed; left: 20px; top: 380px;" value="WUBALUBADUBDUB pet 4" />
 		<input type="button" onclick="bigFatFunctionTest26();" style="position: fixed; left: 20px; top: 410px;" value="WUBALUBADUBDUB pet 5" />
 		<input type="button" onclick="bigFatFunctionTest27();" style="position: fixed; left: 20px; top: 440px;" value="WUBALUBADUBDUB pet dog" />
--->
+		<input type="button" onclick="bigFatFunctionTest28();" style="position: fixed; left: 20px; top: 470px;" value="WUBALUBADUBDUB pet tubby" />
+		<input type="button" onclick="bigFatFunctionTest29();" style="position: fixed; left: 20px; top: 275px;" value="WUBALUBADUBDUB pet robocop" />
+		<input type="button" onclick="bigFatFunctionTest30();" style="position: fixed; left: 20px; top: 250px;" value="WUBALUBADUBDUB pet superman" />
+		<input type="button" onclick="bigFatFunctionTest31();" style="position: fixed; left: 20px; top: 240px;" value="WUBALUBADUBDUB pet harley" />
+		<input type="button" onclick="bigFatFunctionTest32();" style="position: fixed; left: 20px; top: 210px;" value="WUBALUBADUBDUB pet marty" />
+		<input type="button" onclick="bigFatFunctionTest33();" style="position: fixed; left: 20px; top: 190px;" value="WUBALUBADUBDUB pet yoda" />
+		<input type="button" onclick="bigFatFunctionTest34();" style="position: fixed; left: 20px; top: 170px;" value="WUBALUBADUBDUB pet tarkin" />
+		<input type="button" onclick="bigFatFunctionTest35();" style="position: fixed; left: 20px; top: 150px;" value="WUBALUBADUBDUB pet kane" />
+		<input type="button" onclick="bigFatFunctionTest36();" style="position: fixed; left: 20px; top: 130px;" value="WUBALUBADUBDUB pet Croc" />
+		<input type="button" onclick="bigFatFunctionTest37();" style="position: fixed; left: 20px; top: 120px;" value="WUBALUBADUBDUB pet croca" />
+		<input type="button" onclick="bigFatFunctionTestRobot();" style="position: fixed; left: 20px; top: 510px;" value="WUBALUBADUBDUB robotsith" />
+		<input type="button" onclick="bigFatFunctionTestBug();" style="position: fixed; left: 20px; top: 610px;" value="WUBALUBADUBDUB robotbug" /-->
+		
+		
+<!-- input type="button" onclick="window.location='mouseEZWindows.html';" style="position: fixed; right: 20px; top: 140px;" value="Mouse EZ Test" / -->
 		<!--input type="button" onclick="window.location.href ='questClue.html';" style="position: fixed; left: 20px; top: 100px;" value="WUBALUBADUBDUB QUEST CLUE" /-->
 
 <!--<input type="button" onclick="window.location='wheelspin.html';" style="position: fixed; left: 20px; top: 180px;" value="Spin the wheel!" />
 
 <input type="button" onclick="window.location='decisionwheel.html';" style="position: fixed; left: 20px; top: 220px;" value="Decision Wheel" />
 
-		<input type="button" onclick="window.location='mouseEZWindows.html';" style="position: fixed; left: 20px; top: 140px;" value="Mouse EZ Test" />
+		
 
 		<input type="button" onclick="window.location='avatar.html';" style="position: fixed; left: 20px; top: 300px;" value="Avatar Menu" />
 
@@ -1248,131 +2061,6 @@ console.log(instanceObject.model);
 				}*/
 			}
 
-			function spawnCar(model, vscript) {
-				if( model && vscript ) {
-					var commandText = "createcar \"" + model + "\" \"" + vscript + "\";";
-					aaapi.cmd('consoleCommand', commandText);
-				}
-				else if( model ) {
-					var commandText = "createcar \"" + model + "\";";
-					aaapi.cmd('consoleCommand', commandText);
-				}
-				else {
-					var commandText = "createcar;";
-					aaapi.cmd('consoleCommand', commandText);
-				}
-			}
-
-			function bigFatFunctionTest22() {
-				/*
-					std::string forward = (args.ArgC() > 2) ? args.Arg(2) : "";
-					std::string idle = (args.ArgC() > 3) ? args.Arg(3) : "";
-					float flScale = (args.ArgC() > 4) ? Q_atof(args.Arg(4)) : 1.0f;
-					std::string rot = (args.ArgC() > 5) ? args.Arg(5) : "";
-					std::string pos = (args.ArgC() > 6) ? args.Arg(6) : "";
-					float flNear = (args.ArgC() > 7) ? Q_atof(args.Arg(7)) : 100.0f;
-					float flFar = (args.ArgC() > 8) ? Q_atof(args.Arg(8)) : 200.0f;
-					float flSpeed = (args.ArgC() > 9) ? Q_atof(args.Arg(9)) : 100.0f;
-
-					g_pAnarchyManager->SpawnPet(model, forward, idle, flScale, rot, pos, flNear, flFar, flSpeed);
-				*/
-
-				//var model = "models\\Player\\hellinspector\\gromit_pm\\gromit_pm.mdl";
-				var model = "models\\ported\\tubbycat2.mdl";//"models/Player/hellinspector/gromit_pm/gromit_pm.mdl";
-				var forward = "run";//"menu_walk";
-				var idle = "idle";//"idle_all_01";
-				var scale = 1.0;
-				var rot = "0 0 0";
-				var pos = "0 0 0";
-				var near = 50.0;
-				var far = 150.0;
-				var speed = 100.0;
-				var commandText = "spawn_pet \"" + model + "\" \"" + forward + "\" \"" + idle + "\" " + scale + " \"" + rot + "\"  \"" + pos + "\" " + near + " " + far + " " + speed + ";";
-				console.log(commandText);
-				aaapi.cmd('consoleCommand', commandText);
-			}
-			function bigFatFunctionTest23_old() {
-				var model = "models\\Player\\naruto\\goblin.mdl";
-				var forward = "menu_walk";
-				var idle = "idle_all_01";
-				var scale = 0.5;
-				var rot = "0 0 0";
-				var pos = "0 0 0";
-				var near = 50.0;
-				var far = 150.0;
-				var speed = 80.0;
-				var commandText = "spawn_pet \"" + model + "\" \"" + forward + "\" \"" + idle + "\" " + scale + " \"" + rot + "\"  \"" + pos + "\" " + near + " " + far + " " + speed + ";";
-				aaapi.cmd('consoleCommand', commandText);
-			}
-			function bigFatFunctionTest23() {
-				var model = "models\\player\\fwhykay\\tomb_raider_7\\lara_croft\\lara_croft_classic\\lara_classic_flashback_tr7mesh.mdl";
-				var forward = "menu_walk";
-				var idle = "idle_all_01";
-				var scale = 1;
-				var rot = "0 0 0";
-				var pos = "0 0 0";
-				var near = 50.0;
-				var far = 150.0;
-				var speed = 120.0;
-				var commandText = "spawn_pet \"" + model + "\" \"" + forward + "\" \"" + idle + "\" " + scale + " \"" + rot + "\"  \"" + pos + "\" " + near + " " + far + " " + speed + ";";
-				aaapi.cmd('consoleCommand', commandText);
-			}
-			function bigFatFunctionTest24() {
-				var model = "models\\xenians\\controller.mdl";
-				var forward = "Run_all";
-				var idle = "attack2";
-				var scale = 0.5;
-				var rot = "0 0 0";
-				var pos = "0 0 20.0";
-				var near = 50.0;
-				var far = 150.0;
-				var speed = 200.0;
-				var commandText = "spawn_pet \"" + model + "\" \"" + forward + "\" \"" + idle + "\" " + scale + " \"" + rot + "\"  \"" + pos + "\" " + near + " " + far + " " + speed + ";";
-				aaapi.cmd('consoleCommand', commandText);
-			}
-
-			function bigFatFunctionTest25() {
-				var model = "models\\npc\\ghost.mdl";
-				var forward = "alert01";
-				var idle = "chase01";
-				var scale = 1;
-				var rot = "0 0 0";
-				var pos = "0 0 0";
-				var near = 50.0;
-				var far = 150.0;
-				var speed = 200.0;
-				var commandText = "spawn_pet \"" + model + "\" \"" + forward + "\" \"" + idle + "\" " + scale + " \"" + rot + "\"  \"" + pos + "\" " + near + " " + far + " " + speed + ";";
-				aaapi.cmd('consoleCommand', commandText);
-			}
-
-			function bigFatFunctionTest26() {
-				var model = "models\\Player\\goblin\\goblin.mdl";
-				var forward = "menu_walk";
-				var idle = "cidle_all";
-				var scale = 2.5;
-				var rot = "0 0 0";
-				var pos = "0 0 0";
-				var near = 100.0;
-				var far = 200.0;
-				var speed = 170.0;
-				var commandText = "spawn_pet \"" + model + "\" \"" + forward + "\" \"" + idle + "\" " + scale + " \"" + rot + "\"  \"" + pos + "\" " + near + " " + far + " " + speed + ";";
-				aaapi.cmd('consoleCommand', commandText);
-			}
-
-			function bigFatFunctionTest27() {
-				var model = "models\\npc\\dog\\npc_dog.mdl";
-				var forward = "run_N";
-				var idle = "idle2";
-				var scale = 1.0;
-				var rot = "0 0 0";
-				var pos = "0 0 0";
-				var near = 50.0;
-				var far = 150.0;
-				var speed = 150.0;
-				var commandText = "spawn_pet \"" + model + "\" \"" + forward + "\" \"" + idle + "\" " + scale + " \"" + rot + "\"  \"" + pos + "\" " + near + " " + far + " " + speed + ";";
-				aaapi.cmd('consoleCommand', commandText);
-			}
-
 
 			function bigFatFunctionTest() {
 				var worldInfo = aaapi.cmdEx("getWorldInfo");
@@ -1566,6 +2254,9 @@ console.log(instanceObject.model);
 			function fetchDisplayTaskInfo()
 			{
 				displayTaskInfo = aaapi.cmdEx("getDisplayTaskInfo");
+				if( displayTaskInfo && displayTaskInfo.id == 'aai' ) {	// Don't count the Always Animated Images task as a regular task.
+					displayTaskInfo = null;
+				}
 				onDisplayTaskInfoFetched();
 			}
 

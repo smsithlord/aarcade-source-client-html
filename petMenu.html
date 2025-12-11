@@ -187,6 +187,7 @@
 
 			function applyBehavior(behaviorValue) {
 				aaapi.cmd('consoleCommand', 'petbehavior ' + behaviorValue + ' ' + petIndex + ';');
+				aaapi.cmd('deactivateInputMode');
 			}
 
 			var pendingOutfitId;
@@ -198,11 +199,13 @@
 					}, 100);
 				}
 				pendingOutfitId = outfitId;
+				aaapi.cmd('deactivateInputMode');
 			}
 
 			function playSequence(sequenceName) {
 				aaapi.cmd('consoleCommand', 'petplayanimraw "' + sequenceName + '" ' + petIndex + ';');
-				aaapi.cmd('deactivateInputMode');
+				//aaapi.cmd('deactivateInputMode');
+				//aaapi.cmd('deactivateInputMode');
 			}
 
 			var pet = aaapi.cmdEx("getPetByEntityIndex", petIndex);

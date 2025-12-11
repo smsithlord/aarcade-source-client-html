@@ -118,7 +118,56 @@
 				this.sessionId = "loading";				
 				this.waitingToRender = false;
 				this.imageRequests = [];
+				this.useSteamHTTP = true;
+				this.useHTTP = false;
+				this.steamHTTPImageLoaderCallbacks = {};
 			}
+
+			// This handler is for telling SteamHTTP to try to download the image & give us an asset:// URL to a cached version (full res) for us to load.
+			ImageLoader.prototype.addSteamHTTPImageLoaderCallback = function(imageRequest) {
+				var goodSrc = imageRequest.imageElem.goodSrc;
+
+				//var urlHash = arcadeHud.generateCRC(goodSrc);
+				var urlHash = aaapi.cmdEx('generateHashId', goodSrc);
+
+				console.log('steamhttp: adding callback for: ' + goodSrc + ' - ' + urlHash);
+				if( goodSrc == "" || goodSrc.toLowerCase().indexOf('http') != 0 ) {
+					imageLoader.onImageError.call(imageRequest);
+				}
+				else {
+					//var urlHash = arcadeHud.generateCRC(goodSrc);
+
+					// create the key if it doesn't exist
+					if( !this.steamHTTPImageLoaderCallbacks.hasOwnProperty(urlHash) ) {
+						this.steamHTTPImageLoaderCallbacks[urlHash] = [];
+					}
+
+					// push our callback onto it
+					this.steamHTTPImageLoaderCallbacks[urlHash].push(function(urlHashFromEngine, status) {
+						console.log('steamhttp handling success callback: ' + 'asset://ui/cache/steamhttpimages/' + urlHash + '.tbn' + ' - ' + urlHashFromEngine);
+						if( status == "success" ) {
+							console.log('setting src');
+							imageRequest.imageElem.src = 'asset://ui/cache/steamhttpimages/' + urlHash + '.tbn';	// if downloadedFile is valid, it'll trigger 'load'. Otherwise it'll trigger 'error'.
+							//imageRequest.imageElem.src = "asset://ui/map.jpg";
+						}
+						else {
+							imageLoader.onImageError.call(imageRequest);	// we could just fail to load the SRC, but instead let's just call the error handler directly.
+						}
+					});
+
+					aaapi.cmd('steamHTTPImageDownload', goodSrc);
+				}
+			};
+
+			ImageLoader.prototype.steamHTTPImageLoaderCallback = function(urlHash, status) {
+				console.log('steamhttp callback received: ' + urlHash + ' - ' + status);
+				// build array of all listeners
+				var callbacks = this.steamHTTPImageLoaderCallbacks[urlHash];
+				for( var i = 0; i < callbacks.length; i++ ) {
+					callbacks[i](urlHash, status);
+				}
+				delete this.steamHTTPImageLoaderCallbacks[urlHash];
+			};
 
 			ImageLoader.prototype.renderNextImage = function()
 			{
@@ -402,20 +451,28 @@
 						"marquee": "Unknown",
 						"marquee_legacy": "Unknown",
 						"marquee_legacy_cache": "Unknown",
+						"marquee_http": "Unknown",
+						"marquee_steamhttp": "Unknown",
 						"screen_auto_cache": "Unknown",
 						"screen_auto": "Unknown",
 						"screen_cache": "Unknown",
 						"screen": "Unknown",
 						"screen_legacy": "Unknown",
 						"screen_legacy_cache": "Unknown",
+						"screen_http": "Unknown",
+						"screen_steamhttp": "Unknown",
 						"preview_auto_cache": "Unknown",
 						"preview_auto": "Unknown",
 						"preview_cache": "Unknown",
 						"preview": "Unknown",
+						"preview_http": "Unknown",
+						"preview_steamhttp": "Unknown",
 						"file_auto_cache": "Unknown",
 						"file_auto": "Unknown",
 						"file_cache": "Unknown",
-						"file": "Unknown"
+						"file": "Unknown",
+						"file_http": "Unknown",
+						"file_steamhttp": "Unknown"
 					},
 					"screenshots": [],
 					"preloadedStickers": {},
@@ -427,6 +484,29 @@
 					//"tgaElem": undefined,	// only used for TGA files
 					"rendering": false	// true = waiting for AArcade to capture the 12x512 imageElem
 				};
+
+				if( !this.useSteamHTTP ) {
+					var keys = Object.keys(imageRequest.fields);
+					for (var i = 0; i < keys.length; i++) {
+					    var key = keys[i];
+
+					    if (key.indexOf("_steamhttp") !== -1) {
+					        delete imageRequest.fields[key];
+					    }
+					}
+				}
+
+				if( !this.useHTTP ) {
+					var keys = Object.keys(imageRequest.fields);
+					for (var i = 0; i < keys.length; i++) {
+					    var key = keys[i];
+
+					    if (key.indexOf("_http") !== -1) {
+					        delete imageRequest.fields[key];
+					    }
+					}
+				}
+
 //console.log(JSON.stringify(imageRequest));
 				// if we aren't working with an actual item, mark all fields as Bad
 				//if( !!regularImage )
@@ -466,7 +546,7 @@
 				}
 //console.log("Start with trying field " + nextField);
 				//imageRequest.field = nextField;
-
+console.log('steamhttp: nextField is: ' + nextField);
 				if( !!imageRequest.imageElem )
 				{
 					var goodPixelElem = imageRequest.imageElem;//(!!imageRequest.tgaElem) ? imageRequest.tgaElem : imageRequest.imageElem;
@@ -511,7 +591,7 @@
 						{
 							// legacy node screenshot...
 							var legacyNodeShotUrl = "library\\node\\screens\\";
-							legacyNodeShotUrl += aapi.cmdEx('generateHashId', item.file);
+							legacyNodeShotUrl += aaapi.cmdEx('generateHashId', item.file);
 							legacyNodeShotUrl += ".tbn";
 							imageRequest.imageElem.goodSrc = legacyNodeShotUrl;
 							console.log(legacyNodeShotUrl);
@@ -603,8 +683,19 @@
 						this.imageElem.src = elem.toDataURL('image/jpeg', 1);
 					}.bind(imageRequest));
 				}
-				else
+				else if( nextField.indexOf('_steamhttp') >= 0 ) {
+					// TODO:
+					// - Make the request to STEAMHTTP here with a unique file name and download the URL to a temp folder (images might be large)
+					// - Receive a callback when it's succeeded or failed
+					// - Set the SRC of the imageRequest.imageElem.src to the asset:// URL of the cached image, or to something that will naturally fail to trigger error
+					// - fin (asset will either be loaded & have a normal thumbnail generated for it, or it will error & move on)
+console.log('steamhttp: adding callback mark 1');
+					// The call to STEAMHTTP should be something like: aaapi.cmd('steamhttpimage', imageRequest.imageElem.goodSrc)
+					this.addSteamHTTPImageLoaderCallback(imageRequest);
+				}
+				else {
 					imageRequest.imageElem.src = imageRequest.imageElem.goodSrc;
+				}
 			};
 
 			ImageLoader.prototype.getNextField = function(imageRequest)
@@ -615,29 +706,45 @@
 				if( imageRequest.channel === "marquee" )
 				{
 					if(prioritizeLegacyWorkshopImages == "0")
-						fieldPriority = ["marquee_auto_cache", "marquee_auto", "marquee_cache", "marquee", "file_auto", "file_cache", "file", "file_auto_cache", "preview_auto_cache", "preview_auto", "preview_cache", "preview", "screen_auto_cache", "screen_auto", "screen_cache", "screen", "marquee_legacy_cache", "marquee_legacy", "screen_legacy_cache", "screen_legacy"];
+						fieldPriority = ["marquee_auto_cache", "marquee_auto", "marquee_cache", "marquee", "marquee_http", "file_auto", "file_cache", "file", "file_auto_cache", "file_http", "preview_auto_cache", "preview_auto", "preview_cache", "preview", "preview_http", "screen_auto_cache", "screen_auto", "screen_cache", "screen", "screen_http", "marquee_legacy_cache", "marquee_legacy", "screen_legacy_cache", "screen_legacy", "marquee_steamhttp", "file_steamhttp", "preview_steamhttp", "screen_steamhttp"];
 					else if(prioritizeLegacyWorkshopImages == "1")
-						fieldPriority = ["marquee_legacy_cache", "marquee_legacy", "screen_legacy_cache", "screen_legacy", "marquee_auto_cache", "marquee_auto", "marquee_cache", "marquee", "file_auto", "file_cache", "file", "file_auto_cache", "preview_auto_cache", "preview_auto", "preview_cache", "preview", "screen_auto_cache", "screen_auto", "screen_cache", "screen"];
+						fieldPriority = ["marquee_legacy_cache", "marquee_legacy", "screen_legacy_cache", "screen_legacy", "marquee_auto_cache", "marquee_auto", "marquee_cache", "marquee", "marquee_http", "file_auto", "file_cache", "file", "file_auto_cache", "file_http", "preview_auto_cache", "preview_auto", "preview_cache", "preview", "preview_http", "screen_auto_cache", "screen_auto", "screen_cache", "screen", "screen_http", "marquee_steamhttp", "file_steamhttp", "preview_steamhttp", "screen_steamhttp"];
 					else if(prioritizeLegacyWorkshopImages == "-1")
-						fieldPriority = ["marquee_auto_cache", "marquee_auto", "marquee_cache", "marquee", "file_auto", "file_cache", "file", "file_auto_cache", "preview_auto_cache", "preview_auto", "preview_cache", "preview", "screen_auto_cache", "screen_auto", "screen_cache", "screen"];
+						fieldPriority = ["marquee_auto_cache", "marquee_auto", "marquee_cache", "marquee", "marquee_http", "file_auto_cache", "file_auto", "file_cache", "file", "file_http", "preview_auto_cache", "preview_auto", "preview_cache", "preview", "preview_http", "screen_auto_cache", "screen_auto", "screen_cache", "screen", "screen_http", "marquee_steamhttp", "file_steamhttp", "preview_steamhttp", "screen_steamhttp"];
 				}
 				else if( imageRequest.channel === "screen" )
 				{
 					if(prioritizeLegacyWorkshopImages == "0")
-						fieldPriority = ["screen_auto_cache", "screen_auto", "screen_cache", "screen", "preview_auto_cache", "preview_auto", "preview_cache", "preview", "file_auto", "file_cache", "file", "file_auto_cache", "marquee_auto_cache", "marquee_auto", "marquee_cache", "marquee", "screen_legacy_cache", "screen_legacy", "marquee_legacy_cache", "marquee_legacy"];
+						fieldPriority = ["screen_auto_cache", "screen_auto", "screen_cache", "screen", "screen_http", "preview_auto_cache", "preview_auto", "preview_cache", "preview", "preview_http", "file_auto", "file_cache", "file", "file_auto_cache", "file_http", "marquee_auto_cache", "marquee_auto", "marquee_cache", "marquee", "marquee_http", "screen_legacy_cache", "screen_legacy", "marquee_legacy_cache", "marquee_legacy", "screen_steamhttp", "preview_steamhttp", "file_steamhttp", "marquee_steamhttp"];
 					else if(prioritizeLegacyWorkshopImages == "1")
-						fieldPriority = ["screen_legacy_cache", "screen_legacy", "marquee_legacy_cache", "marquee_legacy", "screen_auto_cache", "screen_auto", "screen_cache", "screen", "preview_auto_cache", "preview_auto", "preview_cache", "preview", "file_auto", "file_cache", "file", "file_auto_cache", "marquee_auto_cache", "marquee_auto", "marquee_cache", "marquee"];
+						fieldPriority = ["screen_legacy_cache", "screen_legacy", "marquee_legacy_cache", "marquee_legacy", "screen_auto_cache", "screen_auto", "screen_cache", "screen", "screen_http", "preview_auto_cache", "preview_auto", "preview_cache", "preview", "preview_http", "file_auto", "file_cache", "file", "file_auto_cache", "file_http", "marquee_auto_cache", "marquee_auto", "marquee_cache", "marquee", "marquee_http", "screen_steamhttp", "preview_steamhttp", "file_steamhttp", "marquee_steamhttp"];
 					else if(prioritizeLegacyWorkshopImages == "-1")
-						fieldPriority = ["screen_auto_cache", "screen_auto", "screen_cache", "screen", "preview_auto_cache", "preview_auto", "preview_cache", "preview", "file_auto", "file_cache", "file", "file_auto_cache", "marquee_auto_cache", "marquee_auto", "marquee_cache", "marquee"];
+						fieldPriority = ["screen_auto_cache", "screen_auto", "screen_cache", "screen", "screen_http", "preview_auto_cache", "preview_auto", "preview_cache", "preview", "preview_http", "file_auto", "file_cache", "file", "file_auto_cache", "file_http", "marquee_auto_cache", "marquee_auto", "marquee_cache", "marquee", "marquee_http", "screen_steamhttp", "preview_steamhttp", "file_steamhttp", "marquee_steamhttp"];
 				}
 				else	// should never happen
 				{
 					if(prioritizeLegacyWorkshopImages == "0")
-						fieldPriority = ["marquee_auto_cache", "marquee_auto", "marquee_cache", "marquee", "screen_auto_cache", "screen_auto", "screen_cache", "screen", "preview_auto_cache", "preview_auto", "preview_cache", "preview", "file_auto", "file_cache", "file", "file_auto_cache", "marquee_legacy_cache", "marquee_legacy", "screen_legacy_cache", "screen_legacy"];
+						fieldPriority = ["marquee_auto_cache", "marquee_auto", "marquee_cache", "marquee", "marquee_http", "screen_auto_cache", "screen_auto", "screen_cache", "screen", "screen_http", "preview_auto_cache", "preview_auto", "preview_cache", "preview", "preview_http", "file_auto", "file_cache", "file", "file_auto_cache", "file_http", "marquee_legacy_cache", "marquee_legacy", "screen_legacy_cache", "screen_legacy", "marquee_steamhttp", "screen_steamhttp", "preview_steamhttp", "file_steamhttp"];
 					else if(prioritizeLegacyWorkshopImages == "1")
-						fieldPriority = ["marquee_legacy_cache", "marquee_legacy", "screen_legacy_cache", "screen_legacy", "marquee_auto_cache", "marquee_auto", "marquee_cache", "marquee", "screen_auto_cache", "screen_auto", "screen_cache", "screen", "preview_auto_cache", "preview_auto", "preview_cache", "preview", "file_auto", "file_cache", "file", "file_auto_cache"];
+						fieldPriority = ["marquee_legacy_cache", "marquee_legacy", "screen_legacy_cache", "screen_legacy", "marquee_auto_cache", "marquee_auto", "marquee_cache", "marquee", "marquee_http", "screen_auto_cache", "screen_auto", "screen_cache", "screen", "screen_http", "preview_auto_cache", "preview_auto", "preview_cache", "preview", "preview_http", "file_auto", "file_cache", "file", "file_auto_cache", "file_http", "marquee_steamhttp", "screen_steamhttp", "preview_steamhttp", "file_steamhttp"];
 					else if(prioritizeLegacyWorkshopImages == "-1")
-						fieldPriority = ["marquee_auto_cache", "marquee_auto", "marquee_cache", "marquee", "screen_auto_cache", "screen_auto", "screen_cache", "screen", "preview_auto_cache", "preview_auto", "preview_cache", "preview", "file_auto", "file_cache", "file", "file_auto_cache"];
+						fieldPriority = ["marquee_auto_cache", "marquee_auto", "marquee_cache", "marquee", "marquee_http", "screen_auto_cache", "screen_auto", "screen_cache", "screen", "screen_http", "preview_auto_cache", "preview_auto", "preview_cache", "preview", "preview_http", "file_auto", "file_cache", "file", "file_auto_cache", "file_http", "marquee_steamhttp", "screen_steamhttp", "preview_steamhttp", "file_steamhttp"];
+				}
+
+				if( !this.useSteamHTTP ) {
+					for (var i = fieldPriority.length - 1; i >= 0; i--) {
+						if (fieldPriority[i].indexOf("_steamhttp") !== -1) {
+							fieldPriority.splice(i, 1);
+						}
+					}
+				}
+
+				if( !this.useHTTP ) {
+					for (var i = fieldPriority.length - 1; i >= 0; i--) {
+						if (fieldPriority[i].indexOf("_http") !== -1) {
+							fieldPriority.splice(i, 1);
+						}
+					}
 				}
 
 				var fieldName, fieldValue;
@@ -711,6 +818,20 @@
 								//console.log("B: " + fieldValue);
 								return fieldValue;
 							}
+						}
+						else if( fieldVariation === "http" )
+						{
+							console.log('converting https to http');
+							var fieldValue = baseFieldValue;
+							if( fieldValue.indexOf("https://") === 0 ) {
+								fieldValue = 'http://' + fieldValue.substring(8);
+								return fieldValue;
+							}
+						}
+						else if( fieldVariation === 'steamhttp' ) {
+							console.log('steamhttp');
+							var fieldValue = baseFieldValue;
+							return fieldValue;
 						}
 						else if( fieldVariation === "cache" )
 						{
@@ -813,6 +934,11 @@
 
 				this.ready = true;
 				this.goodSrc = this.imageElem.src;
+
+				if( this.imageElem.src.indexOf('asset://ui/cache/steamhttpimages/') === 0 ) {
+					console.log("steamhttp assigning spoof goodSrc: " + imageLoader.getFieldValue(this, fieldName));
+					this.goodSrc = imageLoader.getFieldValue(this, fieldName);
+				}
 
 				//localStorage.setItem('imageLoaderStatus', JSON.stringify(imageLoaderStatus));
 
@@ -1045,6 +1171,16 @@
 						this.imageElem.isFromCache = true;
 						this.imageElem.src = elem.toDataURL('image/jpeg', 1);
 					}.bind(imageRequest));
+				}
+				else if( nextField.indexOf('_steamhttp') >= 0 ) {
+					// TODO:
+					// - Make the request to STEAMHTTP here with a unique file name and download the URL to a temp folder (images might be large)
+					// - Receive a callback when it's succeeded or failed
+					// - Set the SRC of the imageRequest.imageElem.src to the asset:// URL of the cached image, or to something that will naturally fail to trigger error
+					// - fin (asset will either be loaded & have a normal thumbnail generated for it, or it will error & move on)
+					console.log('steamhttp: adding callback mark 2');
+					// The call to STEAMHTTP should be something like: aaapi.cmd('steamhttpimage', imageRequest.imageElem.goodSrc)
+					imageLoader.addSteamHTTPImageLoaderCallback(imageRequest);
 				}
 				else
 					imageRequest.imageElem.src = imageRequest.imageElem.goodSrc;

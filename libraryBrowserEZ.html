@@ -16,6 +16,12 @@
 			else
 				vehiclePresets = {};
 
+			var petPresets = localStorage.getItem("petPresets");
+			if( !!petPresets )
+				petPresets = JSON.parse(petPresets);
+			else
+				petPresets = {};
+
 			var universeInfo = aaapi.cmdEx("getConnectedSession");// : null;
 
 			var g_context = "items";
@@ -1439,7 +1445,8 @@
 						<img id="makeSlideshowButton" class="ezActionButton helpNote" help="MAKE SLIDESHOW" onclick="makeSlideshow();" style="display: none; width: 32px; height: 32px;" src="slideshowicon.png" />
 						<img class="ezActionButton helpNote" id="questBuilderButton" help="QUEST BUILDER" onclick="showQuestBuilder();" style="width: 32px; height: 32px;" src="questsicon.png" />
 						<img class="ezActionButton helpNote" id="adoptButton" help="ADOPT MODEL" onclick="adoptModel();" style="width: 32px; height: 32px;" src="adopticon.png" />
-						<!--img class="ezActionButton helpNote" help="Roll Item" onclick="rollObjectItem();" style="width: 32px; height: 32px;" id="exportButton" src="exporticon.png" /-->
+						<!--img class="ezActionButton helpNote" help="AArchive Item" onclick="aarchiveItem();" style="width: 32px; height: 32px;" id="exportButton" src="exporticon.png" />
+						<img class="ezActionButton helpNote" help="Roll Item" onclick="rollObjectItem();" style="width: 32px; height: 32px;" id="exportButton" src="exporticon.png" /-->
 						<img class="ezActionButton helpNote" help="EXPORT META DATA" onclick="exportObject();" style="width: 32px; height: 32px;" id="exportButton" src="exporticon.png" />
 						<img class="ezActionButton helpNote" help="LOOK AT ME" onclick="lookAtMe();" style="width: 32px; height: 32px;" src="shadesicon.png" />
 						<img class="ezActionButton helpNote" help="TOGGLE PHYSICS" onclick="togglePhysics();" style="width: 32px; height: 32px;" src="physicsicon.png" />
@@ -1452,6 +1459,8 @@
 						<img class="ezActionButton helpNote" help="SELECT OBJECT" onclick="select();" style="width: 32px; height: 32px;" src="objecticon.png" />
 						<img class="ezNoShow ezActionButton helpNote" id="flagVehicleButton" help="FLAG AS VEHICLE" onclick="flagVehicleEntry();" style="width: 32px; height: 32px;" src="vehicleplusicon.png" />
 						<img class="ezNoShow ezActionButton helpNote" id="unflagVehicleButton" help="UNFLAG AS VEHICLE" onclick="unflagVehicleEntry();" style="width: 32px; height: 32px;" src="vehicleminusicon.png" />
+						<!--img class="ezNoShow ezActionButton helpNote" id="flagPetButton" help="FLAG AS PET" onclick="flagPetEntry();" style="width: 32px; height: 32px;" src="petplusicon.png" />
+						<img class="ezNoShow ezActionButton helpNote" id="unflagPetButton" help="UNFLAG AS PET" onclick="unflagPetEntry();" style="width: 32px; height: 32px;" src="petminusicon.png" /-->
 						<img class="ezNoShow ezActionButton helpNote" id="addToJunkButton" help="FLAG AS JUNK" onclick="addToJunk();" style="width: 32px; height: 32px;" src="addjunkicon.png" />
 						<img class="ezNoShow ezActionButton helpNote" id="removeFromJunkButton" help="UNFLAG AS JUNK" onclick="removeFromJunk();" style="width: 32px; height: 32px;" src="removejunkicon.png" />
 					</div>
@@ -1501,6 +1510,10 @@
 	<a href="javascript:location.reload();" class="devReload" style="z-index: 1000000;">&bull;&nbsp;</a>
 
 	<script>
+		function aarchiveItem() {
+			window.location = "asset://ui/aarchives_uploader.html?item=" + entityInfo.item.id;//entity=" + entityIndex; + "&uiback=" + encodeURIComponent("window.location='asset://ui/libraryBrowserEZ.html?entity=" + entityIndex + "';");
+		}
+
 		function rollObjectItem()
 		{
 			if( !!!entityInfo )
@@ -1931,19 +1944,29 @@
 			var itemId = (!!entityInfo.item && entityInfo.item.id != entityInfo.model.id) ? entityInfo.item.id : "";
 			if( modelId != '' && (itemId == modelId || itemId == '') )
 			{
-				console.log(modelId);
-				console.log(JSON.stringify(vehiclePresets[modelId]));
+				//console.log(modelId);
 				if( !!vehiclePresets[modelId] )
 				{
+					//console.log(JSON.stringify(vehiclePresets[modelId]));
 					document.querySelector("#flagVehicleButton").classList.add("ezNoShow");
 					document.querySelector("#unflagVehicleButton").classList.remove("ezNoShow");
 				}
 				else
 				{
-				console.log("eh???");
 					document.querySelector("#unflagVehicleButton").classList.add("ezNoShow");
 					document.querySelector("#flagVehicleButton").classList.remove("ezNoShow");
 				}
+
+				/*if( !!petPresets[modelId] )
+				{
+					document.querySelector("#flagPetButton").classList.add("ezNoShow");
+					document.querySelector("#unflagPetButton").classList.remove("ezNoShow");
+				}
+				else
+				{
+					document.querySelector("#unflagPetButton").classList.add("ezNoShow");
+					document.querySelector("#flagPetButton").classList.remove("ezNoShow");
+				}*/
 			}
 		}
 
@@ -4981,6 +5004,71 @@
 
 			window.location = "options.html?tab=vehicle";
 		}
+
+		/*function unflagPetEntry()
+		{
+			if( !!!entityInfo )
+				return;
+
+			//var isItemMode = true;
+			var entryId = '';
+			if( !!entityInfo.item && !!entityInfo.item.id && entityInfo.item.id != '' && (!!!entityInfo.model || !!!entityInfo.model.id || entityInfo.model.id != '') )
+				entryId = entityInfo.item.id;
+			else if(!!entityInfo.model && !!entityInfo.model.id && entityInfo.model.id != '')
+				entryId = entityInfo.model.id;
+
+			if( !!entryId && entryId != '' )
+			{
+				// Remove this entry from the pet list
+				delete petPresets[entryId];
+				localStorage.setItem("petPresets", JSON.stringify(petPresets));
+			}
+
+			// reset current values
+			//aaapi.cmd("consoleCommand", "vehicle_eye_offset \"0 0 0\"; air_boat_offset \"0 0 0\"; air_boat_angles \"0 0 0\"; air_boat_model \"\"");
+			console.log("TODO: Actually send the command to the backend to remove this pet's saved data there - if needed? (Pets may not need any backend-saved data in the console.");
+			aaapi.cmd('deactivateInputMode');
+		}
+
+		function flagPetEntry()
+		{
+			if( !!!entityInfo )
+				return;
+
+			//var isItemMode = true;
+			var entryId = '';
+			if( !!entityInfo.item && !!entityInfo.item.id && entityInfo.item.id != '' && (!!!entityInfo.model || !!!entityInfo.model.id || entityInfo.model.id != '') )
+				entryId = entityInfo.item.id;
+			else if(!!entityInfo.model && !!entityInfo.model.id && entityInfo.model.id != '')
+				entryId = entityInfo.model.id;
+
+			var model = aaapi.cmdEx('getLibraryModel', entryId);
+			if( !!model )
+			{
+				if( !!!petPresets[entryId] )
+				{
+					// Add the item to the PET list
+					petPresets[entryId] = {
+						//model: "models\\Player\\goblin\\goblin.mdl"
+						forward: "menu_walk",
+						idle: "cidle_all",
+						scale: 2.5,
+						rot: "0 0 0",
+						pos: "0 0 0",
+						near: 100.0,
+						far: 200.0,
+						speed: 170.0
+					};
+					localStorage.setItem("petPresets", JSON.stringify(petPresets));
+				}
+
+				var petPreset = petPresets[entryId];
+				console.log("TODO: Actually send the command to the backend to ADD this pet's saved data there - if needed? (Pets may not need any backend-saved data in the console.");
+				//aaapi.cmd("consoleCommand", "vehicle_eye_offset \"" + vehiclePreset.camx + " " + vehiclePreset.camy + " " + vehiclePreset.camz + "\"; air_boat_offset \"" + vehiclePreset.x + " " + vehiclePreset.y + " " + vehiclePreset.z + "\"; air_boat_angles \"" + vehiclePreset.pitch + " " + vehiclePreset.yaw + " " + vehiclePreset.roll + "\"; air_boat_model \"" + model.platforms[arcadeHud.platformId].file + "\"");
+			}
+
+			window.location = "options.html?tab=pet";
+		}*/
 
 		if( g_context !== "models" )
 			document.querySelector("#adoptButton").style.display = "none";

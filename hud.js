@@ -7288,6 +7288,38 @@ ArcadeHud.prototype.onDOMReady = function()
 
 ArcadeHud.prototype.loadHeadScript = function(scriptName)
 {
+	// filter out disabled scrapers file names (hard-coded list for now)
+	var hiddenScrapers = [
+	//'scrapers/amazon.js',
+	//'scrapers/bing.js',
+	//'scrapers/curiositystream.js',
+	'scrapers/dcuniverse.js',
+	'scrapers/giantbomb.js',
+	//'scrapers/hulu.js',
+	//'scrapers/instagram.js',
+	//'scrapers/itchio.js',
+	//'scrapers/netflix.js',
+	'scrapers/oculusstore.js',
+	'scrapers/origin.js',
+	//'scrapers/shudder.js',
+	//'scrapers/sketchfab.js',
+	//'scrapers/soundcloud.js',
+	//'scrapers/thegamesdb.js',
+	//'scrapers/vesta.js',
+	//'scrapers/vimeo.js',
+	//'scrapers/wallpapercave.js',
+	//'scrapers/youtube.js',
+	//'scrapers/youtubeplaylists.js',
+	//'scrapers/ddg.js',
+	//'scrapers/ddgimages.js',
+	//'scrapers/google.js',
+	//'scrapers/googleimages.js'];
+	];
+
+	if( hiddenScrapers.indexOf(scriptName) >= 0 ) {
+		return;
+	}
+
 	// load all scrapers before the body loads
 	var xhrObj = new XMLHttpRequest();
 	xhrObj.open('GET', scriptName, false);
@@ -7303,6 +7335,61 @@ ArcadeHud.prototype.loadHeadScript = function(scriptName)
 ArcadeHud.prototype.addScraper = function(scraper)
 {
 	this.scrapers[scraper.id] = scraper;
+};
+
+ArcadeHud.prototype.onWebResponse = function(paramData) {
+	this.handleShmotimeResponse(paramData);
+};
+
+ArcadeHud.prototype.handleShmotimeResponse = function(paramData) {
+	/*function logInChunks(text, chunkSize) {
+	    for (var i = 0; i < text.length; i += chunkSize) {
+	        console.log(text.substring(i, i + chunkSize));
+	    }
+	}
+	logInChunks(paramData, 100);*/
+
+
+	var data = JSON.parse(decodeURIComponent(paramData));
+		console.log(data.type);
+	if( data.type == 'episode_start' ) {
+		if( window.shmotimeOnEpisodeStart ) {
+			window.shmotimeOnEpisodeStart(data);
+		}
+	}
+	else if( data.type == 'episode_end' ) {
+		if( window.shmotimeOnEpisodeEnd ) {
+			window.shmotimeOnEpisodeEnd(data);
+		}
+	}
+	else if( data.type == 'speak_start' ) {
+		if( window.onAIChatBotResponse ) {
+			window.onAIChatBotResponse(data);
+		}
+	}
+	else if( data.type == 'speak_end' ) {
+		if( window.shmotimeOnSpeakEnd ) {
+			window.shmotimeOnSpeakEnd(data);
+		}
+	}
+	else if( data.type == 'load_scene' ) {
+		if( window.shmotimeOnLoadScene ) {
+			window.shmotimeOnLoadScene(data);
+		}
+	}
+	else if( data.type == 'scene_end' ) {
+		if( window.shmotimeOnSceneEnd ) {
+			window.shmotimeOnSceneEnd(data);
+		}
+	}
+	else {
+		console.log(data.type);
+	}
+	/*console.log('web response attributes:');
+	var keys = Object.keys(data);
+	for( var i = 0; i < keys.length; i++ ) {
+		console.log('\t' + keys[i] + ':\t' + JSON.stringify(data[keys[i]]));
+	}*/
 };
 
 ArcadeHud.prototype.init = function()

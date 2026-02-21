@@ -10,7 +10,7 @@
 		<link rel="stylesheet" type="text/css" href="asset://ui/hud.css"></link>
 		<script src="asset://ui/hud.js"></script>
 	</head>
-	<body>		
+	<body>
 		<div class="hudContent" style="width: 40%; position: fixed; left: 0; right: 0; top: 50%; -webkit-transform: translate(0, -50%);">
 			<div class="hudContentHeader">
 				<div class="hudContentHeaderRow">
@@ -31,7 +31,7 @@
 			<div class="hudContentBody"></div>
 		</div>
 
-		
+
 
 <!--		<div class="backButton">Back</div> -->
 		<a href="javascript:location.reload();" class="devReload">&bull;&nbsp;</a>
@@ -68,16 +68,6 @@
 				color: rgba(255, 255, 255, 0.7);
 				background-color: #000;
 				font-weight: bold;
-			}
-
-			.enabledSelect
-			{
-				color: rgba(150, 255, 150, 0.7);
-			}
-
-			.disabledSelect
-			{
-				color: rgba(255, 150, 150, 0.7);
 			}
 
 			.hudContentBody table td:nth-of-type(1)
@@ -139,30 +129,6 @@ function getParameterByName(name, url) {
 			function onOptionSelectChange(e)
 			{
 				var selectedOption = this.options[this.selectedIndex];
-				var testText = selectedOption.text.toLowerCase();
-
-				if( this.selectedIndex === 0 && testText.indexOf("default (") === 0 )
-				{
-					testText = testText.substring(9);
-					testText = testText.substring(0, testText.indexOf(")"));
-				}
-
-				if( testText === "enabled" || testText === "yes" )
-				{
-					this.className = this.className.replace(/\bdisabledSelect\b/,'');
-					this.className += " enabledSelect";
-				}
-				else if( testText === "disabled" || testText === "no" )
-				{
-					this.className = this.className.replace(/\benabledSelect\b/,'');
-					this.className += " disabledSelect";
-				}
-				else
-				{
-					this.className = this.className.replace(/\bdisabledSelect\b/,'');
-					this.className = this.className.replace(/\benabledSelect\b/,'');
-				}
-
 				aaapi.cmd("saveLibretroOption", masterType, this.name_internal, selectedOption.value + "");
 
 				/*
@@ -177,10 +143,13 @@ function getParameterByName(name, url) {
 			}
 
 			var numOptions = response.options.length;
-			var i, option, optionRowElem, optionNameCellElem, optionValueCellElem, numValues, j, optionSelectElem, optionOptionElem, testText;
+			var i, option, displayDefault, optionRowElem, optionNameCellElem, optionValueCellElem, numValues, j, optionSelectElem, optionOptionElem;
 			for( i = 0; i < numOptions; i++ )
 			{
 				option = response.options[i];
+
+				// V2 options have an explicit default_value from the core; fall back to option.default for V0/compat
+				displayDefault = option.default_value || option["default"];
 
 				optionRowElem = document.createElement("tr");
 				optionNameCellElem = document.createElement("td");
@@ -195,16 +164,9 @@ function getParameterByName(name, url) {
 
 				optionOptionElem = document.createElement("option");
 				optionOptionElem.value = "default";
-				optionOptionElem.text = "default (" + option.default + ")";
+				optionOptionElem.text = "default (" + displayDefault + ")";
 				if( option.current == "default" )
-				{
-					optionOptionElem.selected = true;	
-					testText = option.default.toLowerCase();
-					if( testText === "enabled" || testText === "yes" )
-						optionSelectElem.className += " enabledSelect";
-					else if( testText === "disabled" || testText === "no" )
-						optionSelectElem.className += " disabledSelect";
-				}
+					optionOptionElem.selected = true;
 				optionSelectElem.appendChild(optionOptionElem);
 
 				numValues = option.values.length;
@@ -215,14 +177,7 @@ function getParameterByName(name, url) {
 					optionOptionElem.text = option.values[j];
 //console.log(option.current + " vs " + option.values[j]);
 					if( option.current == option.values[j] )
-					{
 						optionOptionElem.selected = true;
-						testText = option.values[j].toLowerCase();
-						if( testText === "enabled" || testText === "yes" )
-							optionSelectElem.className += " enabledSelect";
-						else if( testText === "disabled" || testText === "no" )
-							optionSelectElem.className += " disabledSelect";
-					}
 
 					optionSelectElem.appendChild(optionOptionElem);
 				}

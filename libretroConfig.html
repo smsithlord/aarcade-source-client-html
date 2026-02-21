@@ -6,6 +6,264 @@
 			var cores;
 			var response = aaapi.cmdEx("libretroGetAllDLLs");
 			cores = response.cores;
+			cores.sort(function(a, b) {
+			    return a.file.toLowerCase().localeCompare(b.file.toLowerCase());
+			});
+
+			var extendedInfo = {
+				"fbneo_libretro.dll": {
+					"systems": "Arcade",
+					"notes": "Gold standard, most actively maintained, best compatibility. Sometimes needs BIOS"
+				},
+				"mame_libretro.dll": {
+					"systems": "Arcade",
+					"notes": "Most accurate, very demanding. Sometimes needs BIOS"
+				},
+				"mame2010_libretro.dll": {
+					"systems": "Arcade",
+					"notes": "Good balance of accuracy and performance. Sometimes needs BIOS"
+				},
+				"mame2003_plus_libretro.dll": {
+					"systems": "Arcade",
+					"notes": "Improved 2003 with extra games/fixes. Sometimes needs BIOS"
+				},
+				"mame2003_libretro.dll": {
+					"systems": "Arcade",
+					"notes": "Solid for low-end hardware. Sometimes needs BIOS"
+				},
+				"mame2000_libretro.dll": {
+					"systems": "Arcade",
+					"notes": "Very lightweight but limited compatibility. Sometimes needs BIOS"
+				},
+				"geolith_libretro.dll": {
+					"systems": "Arcade",
+					"notes": "Neo Geo only, newer and promising but niche. Needs BIOS"
+				},
+				"fbalpha2012_libretro.dll": {
+					"systems": "Arcade",
+					"notes": "Outdated, superseded by FBNeo. Sometimes needs BIOS"
+				},
+				"fbalpha2012_neogeo_libretro.dll": {
+					"systems": "Arcade",
+					"notes": "Outdated, Neo Geo only. Needs BIOS"
+				},
+				"fbalpha2012_cps1_libretro.dll": {
+					"systems": "Arcade",
+					"notes": "Outdated, CPS1 only. No BIOS needed"
+				},
+				"fbalpha2012_cps2_libretro.dll": {
+					"systems": "Arcade",
+					"notes": "Outdated, CPS2 only. No BIOS needed"
+				},
+				"fbalpha2012_cps3_libretro.dll": {
+					"systems": "Arcade",
+					"notes": "Outdated, CPS3 only. No BIOS needed"
+				},
+				"genesis_plus_gx_libretro.dll": {
+					"systems": "Genesis, SegaCD",
+					"notes": "Best overall Genesis/CD core, also handles Master System, Game Gear, SG-1000. Sometimes needs BIOS"
+				},
+				"genesis_plus_gx_wide_libretro.dll": {
+					"systems": "Genesis, SegaCD",
+					"notes": "Same as Genesis Plus GX with widescreen hack. Sometimes needs BIOS"
+				},
+				"blastem_libretro.dll": {
+					"systems": "Genesis",
+					"notes": "Very high accuracy, cycle-accurate, no CD or 32X support. No BIOS needed"
+				},
+				"picodrive_libretro.dll": {
+					"systems": "Genesis, 32x, SegaCD",
+					"notes": "Less accurate but fast, only core with 32X support, also handles Sega CD. Sometimes needs BIOS"
+				},
+				"clownmdemu_libretro.dll": {
+					"systems": "Genesis",
+					"notes": "Newer, promising accuracy, still maturing. No BIOS needed"
+				},
+				"bsnes_libretro.dll": {
+					"systems": "SNES",
+					"notes": "Most accurate, cycle-accurate. No BIOS needed"
+				},
+				"bsnes_hd_beta_libretro.dll": {
+					"systems": "SNES",
+					"notes": "bsnes accuracy with widescreen/HD features. No BIOS needed"
+				},
+				"bsnes-jg_libretro.dll": {
+					"systems": "SNES",
+					"notes": "Clean fork of bsnes, very accurate. No BIOS needed"
+				},
+				"mesen-s_libretro.dll": {
+					"systems": "SNES",
+					"notes": "Excellent accuracy, great debugging. No BIOS needed"
+				},
+				"snes9x_libretro.dll": {
+					"systems": "SNES",
+					"notes": "Best balance of accuracy and performance. No BIOS needed"
+				},
+				"bsnes_mercury_accuracy_libretro.dll": {
+					"systems": "SNES",
+					"notes": "Older bsnes fork. No BIOS needed"
+				},
+				"bsnes2014_accuracy_libretro.dll": {
+					"systems": "SNES",
+					"notes": "Older bsnes snapshot. No BIOS needed"
+				},
+				"bsnes_mercury_balanced_libretro.dll": {
+					"systems": "SNES",
+					"notes": "Balanced accuracy/performance fork. No BIOS needed"
+				},
+				"bsnes2014_balanced_libretro.dll": {
+					"systems": "SNES",
+					"notes": "Balanced 2014 snapshot. No BIOS needed"
+				},
+				"bsnes_mercury_performance_libretro.dll": {
+					"systems": "SNES",
+					"notes": "Performance-focused fork. No BIOS needed"
+				},
+				"bsnes2014_performance_libretro.dll": {
+					"systems": "SNES",
+					"notes": "Performance 2014 snapshot. No BIOS needed"
+				},
+				"mednafen_snes_libretro.dll": {
+					"systems": "SNES",
+					"notes": "Older bsnes port. No BIOS needed"
+				},
+				"snes9x2010_libretro.dll": {
+					"systems": "SNES",
+					"notes": "Good for weaker hardware. No BIOS needed"
+				},
+				"bsnes_cplusplus98_libretro.dll": {
+					"systems": "SNES",
+					"notes": "Very old port, legacy. No BIOS needed"
+				},
+				"snes9x2005_plus_libretro.dll": {
+					"systems": "SNES",
+					"notes": "Very lightweight. No BIOS needed"
+				},
+				"snes9x2005_libretro.dll": {
+					"systems": "SNES",
+					"notes": "Very lightweight. No BIOS needed"
+				},
+				"snes9x2002_libretro.dll": {
+					"systems": "SNES",
+					"notes": "Lowest resource use, lowest accuracy. No BIOS needed"
+				},
+				"mesen_libretro.dll": {
+					"systems": "NES",
+					"notes": "Most accurate NES emulator. No BIOS needed"
+				},
+				"fceumm_libretro.dll": {
+					"systems": "NES",
+					"notes": "Great compatibility, lots of features. No BIOS needed"
+				},
+				"nestopia_libretro.dll": {
+					"systems": "NES",
+					"notes": "Very good accuracy, cycle-accurate. No BIOS needed"
+				},
+				"quicknes_libretro.dll": {
+					"systems": "NES",
+					"notes": "Fast but less accurate, good for low-end. No BIOS needed"
+				},
+				"fixnes_libretro.dll": {
+					"systems": "NES",
+					"notes": "Minimal, experimental. No BIOS needed"
+				},
+				"sameboy_libretro.dll": {
+					"systems": "GameBoy",
+					"notes": "Most accurate GB/GBC emulator. No BIOS needed"
+				},
+				"gambatte_libretro.dll": {
+					"systems": "GameBoy",
+					"notes": "Excellent accuracy, long-trusted. No BIOS needed"
+				},
+				"gearboy_libretro.dll": {
+					"systems": "GameBoy",
+					"notes": "Solid accuracy. No BIOS needed"
+				},
+				"DoubleCherryGB_libretro.dll": {
+					"systems": "GameBoy",
+					"notes": "Unique multi-GB link feature. No BIOS needed"
+				},
+				"tgbdual_libretro.dll": {
+					"systems": "GameBoy",
+					"notes": "Link cable support, but dated. No BIOS needed"
+				},
+				"fixgb_libretro.dll": {
+					"systems": "GameBoy",
+					"notes": "Minimal, experimental. No BIOS needed"
+				},
+				"mgba_libretro.dll": {
+					"systems": "GBA",
+					"notes": "Best overall: accuracy, features, active development. Sometimes needs BIOS"
+				},
+				"vbam_libretro.dll": {
+					"systems": "GBA",
+					"notes": "Good compatibility, heavier than mGBA. Sometimes needs BIOS"
+				},
+				"gpsp_libretro.dll": {
+					"systems": "GBA",
+					"notes": "Very fast, great for low-end hardware. Sometimes needs BIOS"
+				},
+				"vba_next_libretro.dll": {
+					"systems": "GBA",
+					"notes": "Lighter VBA fork, decent. Sometimes needs BIOS"
+				},
+				"mednafen_gba_libretro.dll": {
+					"systems": "GBA",
+					"notes": "Adequate but not standout. Sometimes needs BIOS"
+				},
+				"skyemu_libretro.dll": {
+					"systems": "GBA",
+					"notes": "Newer multi-system core, still maturing. Sometimes needs BIOS"
+				},
+				"mednafen_psx_hw_libretro.dll": {
+					"systems": "PSX",
+					"notes": "Best: high accuracy with GPU enhancements. Needs BIOS"
+				},
+				"swanstation_libretro.dll": {
+					"systems": "PSX",
+					"notes": "Duckstation fork, great accuracy and enhancements. Needs BIOS"
+				},
+				"mednafen_psx_libretro.dll": {
+					"systems": "PSX",
+					"notes": "Very accurate, software rendering only. Needs BIOS"
+				},
+				"pcsx_rearmed_libretro.dll": {
+					"systems": "PSX",
+					"notes": "Best for low-end/ARM devices, less accurate. Needs BIOS"
+				},
+				"mupen64plus_next_libretro.dll": {
+					"systems": "N64",
+					"notes": "Better compatibility, actively maintained, ParaLLEl RDP support. No BIOS needed"
+				},
+				"parallel_n64_libretro.dll": {
+					"systems": "N64",
+					"notes": "Older, less maintained, but still functional. No BIOS needed"
+				},
+				"mednafen_saturn_libretro.dll": {
+					"systems": "Saturn",
+					"notes": "Most accurate, gold standard, very CPU-demanding. Needs BIOS"
+				},
+				"yabasanshiro_libretro.dll": {
+					"systems": "Saturn",
+					"notes": "Good compatibility, lighter, OpenGL renderer. Needs BIOS"
+				},
+				"yabause_libretro.dll": {
+					"systems": "Saturn",
+					"notes": "Older, largely superseded by YabaSanshiro. Needs BIOS"
+				},
+				"flycast_libretro.dll": {
+					"systems": "DC",
+					"notes": "Best Dreamcast core, good compatibility, hardware-accelerated rendering. Needs BIOS"
+				},
+				"ppsspp_libretro.dll": {
+					"systems": "PSP",
+					"notes": "Excellent PSP emulator, high compatibility, hardware-accelerated rendering. No BIOS needed"
+				},
+				"play_libretro.dll": {
+					"systems": "PS2",
+					"notes": "Only PS2 Libretro core; limited compatibility, still maturing. Does NOT support STATE saves. Needs BIOS"
+				}
+			};
 		</script>
 		<style>
 			.coreFolderEntry:hover
@@ -292,6 +550,8 @@
 					<div id="coreTitle" class="aaThemeColorOneColor aaTitleTextSizeFontSize aaTitleText">
 						- no core selected -
 					</div>
+					<div id="coreSubtitle" class="aaTextColorTwoColor" style="display: none; font-size: 11px; font-family: Arial; margin-top: 4px; line-height: 1.4;">
+					</div>
 				</td></tr>
 				<tr><td align="center">
 					<div class="aaTextSizeFontSize aaTextColorTwoColor">
@@ -411,6 +671,10 @@
 					 			<tr><td colspan="2">
 					 				<input type="button" class="aaButton aaBigButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor" value="Add Another Content Folder" style="width: 100%;" onclick="addNewContentFolder();" />
 					 			</td></tr>
+					 			<tr><td colspan="2" align="center">
+					 				<input type="button" class="aaButton aaTextSizeFontSize aaThemeColorTwoHoverShadedBackground aaTextColorTwoColor aaThemeColorTwoLowBorderColor helpNote" help="This resets the options normally available in the Libretro Options menu for the core at runtime back to their default states, for this core only." value="Reset Core Runtime Options" style="margin-top: 10px;" onclick="resetCoreOptions();" />
+					 				<div id="resetCoreOptionsMsg" class="aaTitleText aaThemeColorOneColor" style="display: none; text-align: center; padding: 6px; font-size: 12px;">Core options reset!</div>
+					 			</td></tr>
 					 		</table>
 					 		<input type="submit" value="Submit" style="position: absolute; pointer-events: none; visibility: hidden;" />
 					 	</form>
@@ -482,115 +746,112 @@
 			</ol>
 			<br />
 
-			<font class="aaThemeColorOneColor aaTitleText aaTitleTextSizeFontSize">Cores That Work</font><br /><br />
+<font class="aaThemeColorOneColor aaTitleText aaTitleTextSizeFontSize">Cores That Work</font><br /><br />
 			<font style="font-weight: bold;">(ARCADE)</font><br />
 			<ul style="margin: 0;">
-				<li>mame2003_libretro</li>
-				<li>libretro_picodrive</li>
+				<li>mame_libretro (expects NEOGEO bios in /mame/bios)</li>
+				<li>fbneo_libretro</li>
+			</ul>
+			<font style="font-weight: bold;">(GENESIS)</font><br />
+			<ul style="margin: 0;">
+				<li>picodrive_libretro</li>
+				<li>genesis_plus_gx_libretro</li>
+				<li>genesis_plus_gx_wide_libretro</li>
+				<li>blastem_libretro</li>
+			</ul>
+			<br />
+			<font style="font-weight: bold;">(SEGA CD)</font><br />
+			<ul style="margin: 0;">
+				<li>picodrive_libretro</li>
+				<li>genesis_plus_gx_libretro</li>
+				<li>genesis_plus_gx_wide_libretro</li>
+			</ul>
+			<br />
+			<font style="font-weight: bold;">(32X)</font><br />
+			<ul style="margin: 0;">
+				<li>picodrive_libretro</li>
 			</ul>
 			<br />
 			<font style="font-weight: bold;">(SNES)</font><br />
 			<ul style="margin: 0;">
-				<li>bsnes_accuracy_libretro</li>
-				<li>bsnes_balanced_libretro</li>
-				<li>bsnes_cplusplus98_libretro</li>
-				<li>bsnes_mercury_accuracy_libretro</li>
-				<li>bsnes_mercury_balanced_libretro</li>
-				<li>bsnes_mercury_performance_libretro</li>
-				<li>bsnes_performance_libretro</li>
+				<li>bsnes_libretro</li>
+				<li>bsnes_hd_beta_libretro</li>
 				<li>snes9x_libretro</li>
-				<li>snes9x_next_libretro</li>
 			</ul>
 			<br />
 			<font style="font-weight: bold;">(NES)</font><br />
 			<ul style="margin: 0;">
+				<li>fceumm_libretro</li>
 				<li>nestopia_libretro</li>
-			</ul>
-			<br />
-			<font style="font-weight: bold;">(VIDEO FILES)</font><br />
-			<ul style="margin: 0;">
-				<li>ffmpeg_libretro</li>
+				<li>mesen_libretro</li>
 			</ul>
 			<br />
 			<font style="font-weight: bold;">(GAMEBOY)</font><br />
 			<ul style="margin: 0;">
-				<li>gamebattle_libretro</li>
+				<li>gambatte_libretro</li>
+				<li>gearboy_libretro</li>
+				<li>sameboy_libretro</li>
 			</ul>
 			<br />
 			<font style="font-weight: bold;">(GBA)</font><br />
 			<ul style="margin: 0;">
-				<li>vba_next_libretro</li>
+				<li>mgba_libretro</li>
 				<li>vbam_libretro</li>
+				<li>vba_next_libretro</li>
 			</ul>
 			<br />
 			<font style="font-weight: bold;">(PSX)</font><br />
 			<ul style="margin: 0;">
-				<li>medfan_psx_libretro</li>
+				<li>mednafen_psx_hw_libretro</li>
+				<li>mednafen_psx_libretro</li>
+				<li>swanstation_libretro</li>
+			</ul>
+			<br />
+			<font style="font-weight: bold;">(N64)</font><br />
+			<ul style="margin: 0;">
+				<li>mupen64plus_next_libretro</li>
+				<li>parallel_n64_libretro</li>
+			</ul>
+			<br />
+			<font style="font-weight: bold;">(SATURN)</font><br />
+			<ul style="margin: 0;">
+				<li>mednafen_saturn_libretro</li>
+			</ul>
+			<br />
+			<font style="font-weight: bold;">(PS2)</font><br />
+			<ul style="margin: 0;">
+				<li>play_libretro (VERY slow)</li>
+			</ul>
+			<br />
+			<font style="font-weight: bold;">(PSP)</font><br />
+			<ul style="margin: 0;">
+				<li>ppsspp_libretro</li>
 			</ul>
 			<br />
 			<br />
 			<font class="aaThemeColorOneColor aaTitleText aaTitleTextSizeFontSize">Cores That DO NOT Work</font><br /><br />
 
 			<ul style="margin: 0;">
-				<li>mame_libretro</li>
-				<li>mame2010_libretro</li>
-				<li>mame2014_libretro</li>
-				<li>desume_libretro</li><!-- (RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS) -->
-				<li>mupen64plus_libretro</li><!-- (UNKNOWN ISSUES) -->
+				<li>flycast_libretro</li>
+				<li>yabasanshiro_libretro</li>
 			</ul>
 			<br />
 			<br />
-			<font class="aaThemeColorOneColor aaTitleText aaTitleTextSizeFontSize">Untested & Assumed NOT Working</font><br /><br />
 
-			<ul style="margin: 0;">
-				<li>2048_libretro</li>
-				<li>3dengine_libretro</li>
-				<li>4do_libretro</li>
-				<li>bluemsx_libretro</li>
-				<li>dinothawr_libretro</li>
-				<li>dosbox_libretro</li>
-				<li>fba_cores_cps1_libretro</li>
-				<li>fba_cores_cps2_libretro</li>
-				<li>fba_cores_neo_libretro</li>
-				<li>fb_alpha_libretro</li>
-				<li>fceumm_libretro</li>
-				<li>fmsx_libretro</li>
-				<li>genesis_plus_gx_libretro</li>
-				<li>handy_libretro</li>
-				<li>mame2000_libretro</li>
-				<li>mednafen_gba_libretro</li>
-				<li>mednafen_lynx_libretro</li>
-				<li>mednafen_ngp_libretro</li>
-				<li>mednafen_pce_fast_libretro</li>
-				<li>mednafen_pcfx_libretro</li>
-				<li>mednafen_snes_libretro</li>
-				<li>mednafen_supergrafx_libretro</li>
-				<li>mednafen_vb_libretro</li>
-				<li>mednafen_wswan_libretro</li>
-				<li>mess_libretro</li>
-				<li>meteor_libretro</li>
-				<li>nxengine_libretro</li>
-				<li>o2em_libretro</li>
-				<li>picodrive_libretro</li>
-				<li>prboom_libretro</li>
-				<li>prosystem_libretro</li>
-				<li>quicknes_libretro</li>
-				<li>remotejoy_libretro</li>
-				<li>scummvm_libretro</li>
-				<li>stella_libretro</li>
-				<li>tgbdual_libretro</li>
-				<li>tryquake_libretro</li>
-				<li>ume_libretro</li>
-				<li>vecx_libretro</li>
-				<li>virtualjaguar_libretro</li>
-				<li>yabause_libretro</li>
-			</ul>
+			<font class="aaThemeColorOneColor aaTitleText aaTitleTextSizeFontSize">System BIOS</font><br /><br />
+			Some cores expect BIOS to be present. Those often go into your ROM folder, <b>or</b> into this folder (unless otherwise noted in the core list):
+			<div>
+				<input type="text" size="63" value="Anarchy Arcade/aarcade_user/libretro/system/CORE_NAME_HERE/" style="border: 0; background-color: inherit;" class="aaTextSizeFontSize aaTextColorTwoColor" readonly=true onclick="this.select();" />
+			</div>
+
 			<br /><br />
+
+
 			<font class="aaThemeColorOneColor aaTitleText aaTitleTextSizeFontSize">Technical Notes</font><br />
 			<ul>
 				<li>AArcade supports 32bit Libretro DLLs only.</li>
-				<li>Cores that require Libretro 3D acceleration will fail.</li>
-				<li>All compatibility lists last updated August 2017.</li>
+				<li>Untested cores not listed here <b>MAY</b> work fine. They just haven't been tested yet.</li>
+				<li>All compatibility lists last updated February 2026.</li>
 			</ul>
 		</div>
 
@@ -628,6 +889,7 @@
 		<script>
 			var dllListElem = document.querySelector("#dllList");
 			var coreTitleElem = document.querySelector("#coreTitle");
+			var coreSubtitleElem = document.querySelector("#coreSubtitle");
 			var entryFormElem = document.querySelector("#entryForm");
 			var enabledBoxElem = document.querySelector("#enabledBox");
 			var enabledToggleElem = document.querySelector("#enabledToggle");
@@ -811,6 +1073,13 @@
 				var option = this.options[this.selectedIndex];
 				var core = option.core;
 				coreTitleElem.innerHTML = core.file;
+				var info = extendedInfo[core.file];
+				if (info) {
+					coreSubtitleElem.innerHTML = "<b>Systems:</b> " + info.systems + "<br /><b>Notes:</b> " + info.notes;
+					coreSubtitleElem.style.display = "block";
+				} else {
+					coreSubtitleElem.style.display = "none";
+				}
 				entryFormElem.setAttribute("corefile", core.file);
 
 				enabledToggleElem.curvalue = core.enabled;
@@ -915,6 +1184,21 @@
 				elem.curvalue = nextvalue;
 				toggleSwitchCore(elem);
 				updateDLL();
+			}
+
+			function resetCoreOptions()
+			{
+				var coreFile = entryFormElem.getAttribute("corefile");
+				if( !coreFile )
+					return;
+
+				aaapi.cmd('resetLibretroCoreOptions', coreFile);
+
+				var msgElem = document.querySelector("#resetCoreOptionsMsg");
+				msgElem.style.display = "block";
+				setTimeout(function() {
+					msgElem.style.display = "none";
+				}, 2000);
 			}
 ///*
 			function toggleSwitchCore(toggleButton)

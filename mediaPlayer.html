@@ -20,6 +20,94 @@
       height: 100%;
       overflow: hidden;
     }
+
+    #playlist
+    {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      -webkit-transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%);
+      z-index: 200;
+      background: rgba(0, 0, 0, 0.75);
+      color: #ccc;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 12px;
+      max-height: 50%;
+      width: 320px;
+      display: flex;
+      flex-direction: column;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    #playlistControls
+    {
+      display: -webkit-flex;
+      display: flex;
+      -webkit-flex-direction: row;
+      flex-direction: row;
+      padding: 4px 6px;
+      background: rgba(0, 0, 0, 0.9);
+    }
+
+    #playlistControls button
+    {
+      background: #333;
+      color: #eee;
+      border: 1px solid #555;
+      padding: 3px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      border-radius: 3px;
+      margin: 0 2px;
+    }
+
+    #playlistControls button:hover
+    {
+      background: #555;
+    }
+
+    #playlistTitle
+    {
+      -webkit-flex: 1;
+      flex: 1;
+      text-align: center;
+      color: #fff;
+      font-weight: bold;
+      line-height: 24px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding: 0 6px;
+    }
+
+    #playlistTracks
+    {
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .playlist-track
+    {
+      padding: 4px 8px;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .playlist-track:hover
+    {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .playlist-track.active
+    {
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+      font-weight: bold;
+    }
   </style>
 
   <script src="mp3particles/libs/vector.js" async></script>
@@ -80,32 +168,147 @@
 
   <script src="mp3particles/js/main.js" defer></script>
 
+    <video id="videoStage" onloadstart="this.volume=1.0" style="display: none; width: 100%; height: 100%; z-index: 100; position: absolute; top: 0; left: 0;" autoplay controls></video>
+    <audio id="audioStage" onloadstart="this.volume=1.0" style="display: none; width: 100%; z-index: 100; position: absolute; bottom: 0; left: 0;" autoplay controls></audio>
 
+    <div id="playlist" style="display: none;">
+      <div id="playlistControls">
+        <button id="btnPrev">&#9664; Prev</button>
+        <div id="playlistTitle"></div>
+        <button id="btnNext">Next &#9654;</button>
+      </div>
+      <div id="playlistTracks"></div>
+    </div>
 
-		<video id="videoStage" onloadstart="this.volume=1.0" style="display: none; width: 100%; height: 100%; z-index: 100; position: absolute; top: 0; left: 0;" autoplay controls></video>
-		<audio id="audioStage" onloadstart="this.volume=1.0" style="display: none; width: 100%; z-index: 100; position: absolute; bottom: 0; left: 0;" autoplay controls></audio>
+    <script>
+      function GetParameterByName(name, url)
+      {
+        // http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
+          if (!url) url = window.location.href;
+          name = name.replace(/[\[\]]/g, "\\$&");
+          var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+              results = regex.exec(url);
+          if (!results) return null;
+          if (!results[2]) return '';
+          var raw = results[2].replace(/\+/g, " ");
+          try { return decodeURIComponent(raw); }
+          catch(e) { return unescape(raw); }
+      }
 
-		<script>
-			function GetParameterByName(name, url)
-			{
-				// http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
-			    if (!url) url = window.location.href;
-			    name = name.replace(/[\[\]]/g, "\\$&");
-			    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-			        results = regex.exec(url);
-			    if (!results) return null;
-			    if (!results[2]) return '';
-			    return decodeURIComponent(results[2].replace(/\+/g, " "));
-			}
+      function encodeFilePath(filePath)
+      {
+        // Percent-encode characters that are unsafe in file:// URLs
+        // but preserve drive letters, path separators, and colons.
+        // Also encode any bytes > 127 (e.g. Windows-1252 smart quotes).
+        var regex = /[#'()!~\[\]{}|^ @&+,;=`\x80-\xff]/g;
+        var result = '';
+        var lastIndex = 0;
+        var match = regex.exec(filePath);
+        while( match !== null )
+        {
+          result += filePath.substring(lastIndex, match.index);
+          var hex = match[0].charCodeAt(0).toString(16).toUpperCase();
+          if( hex.length < 2 )
+            hex = '0' + hex;
+          result += '%' + hex;
+          lastIndex = regex.lastIndex;
+          match = regex.exec(filePath);
+        }
+        result += filePath.substring(lastIndex);
+        return result;
+      }
+
+      function getFileName(filePath)
+      {
+        var lastSlash = Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\'));
+        var name = (lastSlash >= 0) ? filePath.substring(lastSlash + 1) : filePath;
+        var lastDot = name.lastIndexOf('.');
+        if( lastDot > 0 )
+          name = name.substring(0, lastDot);
+        return name;
+      }
+
+      function updatePlaylistUI()
+      {
+        var tracks = document.querySelectorAll('.playlist-track');
+        for( var i = 0; i < tracks.length; i++ )
+        {
+          if( i === otherIndex )
+            tracks[i].className = 'playlist-track active';
+          else
+            tracks[i].className = 'playlist-track';
+        }
+
+        var titleEl = document.getElementById('playlistTitle');
+        if( otherIndex >= 0 && otherIndex < otherFiles.length )
+          titleEl.textContent = getFileName(otherFiles[otherIndex]);
+        else
+          titleEl.textContent = '';
+      }
+
+      function playTrack(index)
+      {
+        if( index < 0 || index >= otherFiles.length )
+          return;
+
+        otherIndex = index;
+        mediaFile.src = otherFiles[otherIndex];
+        mediaSource.src = encodeFilePath(mediaFile.src);
+        mediaStage.load();
+        updatePlaylistUI();
+
+        setTimeout(function()
+        {
+          mediaStage.play();
+        }, 500);
+      }
+
+      function buildPlaylist()
+      {
+        var container = document.getElementById('playlistTracks');
+        for( var i = 0; i < otherFiles.length; i++ )
+        {
+          var div = document.createElement('div');
+          div.className = 'playlist-track';
+          div.textContent = getFileName(otherFiles[i]);
+          div.setAttribute('data-index', i);
+          div.onclick = function()
+          {
+            var idx = parseInt(this.getAttribute('data-index'), 10);
+            playTrack(idx);
+          };
+          container.appendChild(div);
+        }
+
+        document.getElementById('btnPrev').onclick = function()
+        {
+          var idx = otherIndex - 1;
+          if( idx < 0 )
+            idx = otherFiles.length - 1;
+          playTrack(idx);
+        };
+
+        document.getElementById('btnNext').onclick = function()
+        {
+          var idx = otherIndex + 1;
+          if( idx >= otherFiles.length )
+            idx = 0;
+          playTrack(idx);
+        };
+
+        document.getElementById('playlist').style.display = 'flex';
+        updatePlaylistUI();
+      }
 
       var otherIndex = -1;
       var otherFiles = [];
-			var mediaFile = GetParameterByName("file");
-			if( !!mediaFile )
-				mediaFile = JSON.parse(mediaFile);
+      var mediaStage, mediaSource;
+      var mediaFile = GetParameterByName("file");
+      if( !!mediaFile )
+        mediaFile = JSON.parse(mediaFile);
 
-			if( !!mediaFile )
-			{
+      if( !!mediaFile )
+      {
         var file = mediaFile.src;
         var path = '';
         var slashType = '/';
@@ -131,44 +334,45 @@
 
             if( otherFile == fileOnly )
               otherIndex = i;
-            //{
-//              src: path + slashType + otherFile,
-              //type: mediaFile.type
-            //});
           }
         }
 
-				var mediaStage = (mediaFile.type.indexOf("audio") === 0) ? document.querySelector("#audioStage") : document.querySelector("#videoStage");
-
-				mediaStage.addEventListener('canplaythrough', function()
-				{
-          setTimeout(function()
-          {
-					 mediaStage.play();
-          }, 200);
-				});
+        mediaStage = (mediaFile.type.indexOf("audio") === 0) ? document.querySelector("#audioStage") : document.querySelector("#videoStage");
 
         mediaStage.addEventListener('ended', function()
         {
           otherIndex++;
-         // var index = otherFiles.indexOf(mediaFile.src);
           if( otherIndex >= otherFiles.length )
             otherIndex = 0;
 
           mediaFile.src = otherFiles[otherIndex];
-          mediaSource.src = mediaFile.src;
+          mediaSource.src = encodeFilePath(mediaFile.src);
           mediaStage.load();
+          updatePlaylistUI();
+
+          setTimeout(function()
+          {
+            mediaStage.play();
+          }, 500);
         });
 
         if( otherFiles.length == 0 )
           mediaStage.loop = true;
 
-				var mediaSource = document.createElement("source");
-				mediaSource.src = mediaFile.src;
-				mediaSource.type = mediaFile.type;
-				mediaStage.appendChild(mediaSource);
-				mediaStage.style.display = "block";
-			}
-		</script>
-	</body>
+        mediaSource = document.createElement("source");
+        mediaSource.src = encodeFilePath(mediaFile.src);
+        mediaSource.type = mediaFile.type;
+        mediaStage.appendChild(mediaSource);
+        mediaStage.style.display = "block";
+
+        setTimeout(function()
+        {
+          mediaStage.play();
+        }, 500);
+
+        if( otherFiles.length > 0 )
+          buildPlaylist();
+      }
+    </script>
+  </body>
 </html>

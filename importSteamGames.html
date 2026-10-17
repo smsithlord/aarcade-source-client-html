@@ -12,9 +12,6 @@
 
 		<script>
 			var uiBack = arcadeHud.getParameterByName("uiback");
-			//if( !uiBack )
-			//	uiBack = "window.location='asset://ui/import.html';";
-
 			var windowHeaderHTML = arcadeHud.generateWindowHeaderHTML("Import Steam Games", "", true, true, uiBack, "aaapi.cmd('deactivateInputMode');");
 			document.write(windowHeaderHTML);
 		</script>
@@ -22,18 +19,21 @@
 		<center>
 			<div class="aaWindowPaneContent aaThemeColorTwoHighBackgroundColor aaThemeColorTwoLowBorderColor aaTextSizeFontSize aaTextColorTwoColor">
 				<div style="text-align: left; font-family: Arial;" class="aaTitleTextSizeFontSize aaTextColorTwoColor">
-					<ol style="margin: 0;">
-						<li>Continue to your Steam Profile.</li>
-						<li>Click the big <b>IMPORT STEAM GAMES</b> button that appears.</li>
-					</ol>
+					Adds your Steam games to your library, skipping any that are already there.
 				</div>
+				<label style="display: block; text-align: left; font-family: Arial; margin-top: 8px; cursor: pointer;" class="aaTextColorTwoColor">
+					<input type="checkbox" id="includeOutliers" checked="checked" />
+					Include outliers (demos, betas, free-to-play, etc.)
+				</label>
+				<div id="detectStatus" style="text-align: left; font-family: Arial; margin-top: 8px; display: none;" class="aaTextColorTwoColor"></div>
 			</div>
 
 			<br />
 
-			<!-- Continue -->
-			<input type="button" class="aaButton aaTitleTextSizeFontSize aaThemeColorOneHoverShadedBackground aaTextColorOneColor aaThemeColorOneLowBorderColor helpNote" value="Continue to All Games" onclick="aaapi.cmd('beginImportSteamGames', 'all');" help="Continue to your Steam games list." style="float: right; padding-left: 24px; padding-right: 24px;" />
-			<input type="button" class="aaButton aaTitleTextSizeFontSize aaThemeColorOneHoverShadedBackground aaTextColorOneColor aaThemeColorOneLowBorderColor helpNote" value="Continue to Recent Games" onclick="aaapi.cmd('beginImportSteamGames', 'recent');" help="Continue to your Steam games list." style="float: right; padding-left: 24px; padding-right: 24px;" />
+			<!-- float: right reverses the order: on screen these read All Games | Installed Games | Recently Played -->
+			<input type="button" class="aaButton aaTitleTextSizeFontSize aaThemeColorOneHoverShadedBackground aaTextColorOneColor aaThemeColorOneLowBorderColor helpNote steamDetectButton" value="Recently Played" onclick="detectSteamGames('recent');" help="Only the games you played in the last two weeks." style="float: right; padding-left: 24px; padding-right: 24px;" />
+			<input type="button" class="aaButton aaTitleTextSizeFontSize aaThemeColorOneHoverShadedBackground aaTextColorOneColor aaThemeColorOneLowBorderColor helpNote steamDetectButton" value="Installed Games" onclick="detectSteamGames('installed');" help="Only your games installed on this PC." style="float: right; padding-left: 24px; padding-right: 24px;" />
+			<input type="button" class="aaButton aaTitleTextSizeFontSize aaThemeColorOneHoverShadedBackground aaTextColorOneColor aaThemeColorOneLowBorderColor helpNote steamDetectButton" value="All Games" onclick="detectSteamGames('all');" help="Every game your Steam account owns." style="float: right; padding-left: 24px; padding-right: 24px;" />
 
 		</center>
 
@@ -41,42 +41,135 @@
 			var windowFooterHTML = arcadeHud.generateWindowFooterHTML();
 			document.write(windowFooterHTML);
 
-			function xaaOnActivateInputMode(opts)
+			// 2026-10: your games come from the Steamworks relay (what your account owns) and the appmanifest files in
+			// your Steam library folders (what is installed), no longer from a scrape of your Steam profile page.
+			// C++ answers through eventListener.steamGamesDetected(status, body, installedText, error).
+			function EventListener() {}
+			var eventListener = new EventListener();
+			var g_detectMode = "";
+
+			function setDetectStatus(text)
 			{
-				/*
-				isFullscreen,
-				isHudPinned,
-				isMapLoaded,
-				isObjectSelected,
-				isItemSelected,
-				isMainMenu,
-				url,
-				isSelectedObject,
-				embeddedInstanceType,
-				canStream,
-				canPreview,
-				canGoForward,
-				canGoBack,
-				libretroCore,
-				libretroFile,
-				libretroCanRun,
-				libretroOverlayX,
-				libretroOverlayY,
-				libretroOverlayWidth,
-				libretroOverlayHeight,
-				libretroOverlayId,
-				activeScraperId,
-				connectedToUniverse
-			)
-			{*/
-				//if( !!arcadeHud.activeScraper )
-				//	console.log("YAAAAAAAAAR: " + arcadeHud.activeScraper.id);
-				//else
-				//	console.log("No scraper.");
-//console.log(JSON.stringify(arguments));
-				if( opts.activeScraperId === "importSteamGames" )
-					window.location = "asset://ui/overlay.html";
+				var elem = document.getElementById("detectStatus");
+				elem.innerHTML = "";
+				elem.appendChild(document.createTextNode(text));
+				elem.style.display = (text === "") ? "none" : "block";
 			}
+
+			function setDetectButtonsEnabled(enabled)
+			{
+				var buttons = document.getElementsByClassName("steamDetectButton");
+				for (var i = 0; i < buttons.length; i++)
+					buttons[i].disabled = !enabled;
+			}
+
+			function detectSteamGames(mode)
+			{
+				g_detectMode = mode;
+				setDetectButtonsEnabled(false);
+				setDetectStatus("Asking Steam for your games...");
+				aaapi.cmd("beginDetectSteamGamesFixed");
+			}
+
+			EventListener.prototype.steamGamesDetected = function(status, body, installedText, error)
+			{
+				var mode = g_detectMode;
+				var includeOutliers = document.getElementById("includeOutliers").checked;
+
+				// Installed apps: "appid\tname\tLastPlayed\n" lines from the appmanifests.
+				var installed = {};
+				var installedOrder = [];
+				var lines = (installedText || "").split("\n");
+				for (var i = 0; i < lines.length; i++)
+				{
+					var parts = lines[i].split("\t");
+					if (parts.length < 3 || parts[0] === "")
+						continue;
+					installed[parts[0]] = { "name": parts[1], "lastPlayed": parseInt(parts[2], 10) || 0 };
+					installedOrder.push(parts[0]);
+				}
+
+				// Owned games: {"game_count":N,"games":[{appid,name,playtime_2weeks,...}],"hidden":true?} or {"error":"..."}
+				var response = null;
+				try { response = JSON.parse(body); } catch (e) { response = null; }
+				var owned = (status === "200" && response && response.games) ? response.games : null;
+				if (owned && owned.length === 0 && response.hidden)
+					owned = null;
+
+				if (!owned && mode !== "installed")
+				{
+					if (response && response.hidden)
+						setDetectStatus("Steam keeps your games list private. Set your Steam profile's Game details to Public, then try again.");
+					else
+						setDetectStatus("Could not get your games list from Steam (" + ((response && response.error) ? response.error : (error || ("HTTP " + status))) + ").");
+					setDetectButtonsEnabled(true);
+					return;
+				}
+
+				var flat = [];	// [name, appid, name, appid, ...]: the shape the importSteamGames handler takes
+				var added = {};
+				function add(appid, name)
+				{
+					appid = String(appid);
+					if (added[appid])
+						return;
+					added[appid] = true;
+					flat.push(name ? String(name) : ("Steam app " + appid), appid);
+				}
+
+				var cutoff = Math.floor(new Date().getTime() / 1000) - 14 * 24 * 3600;	// "recent" = the last two weeks
+				if (owned)
+				{
+					var ownedIds = {};
+					for (var j = 0; j < owned.length; j++)
+					{
+						var game = owned[j];
+						var gameId = String(game.appid);
+						ownedIds[gameId] = true;
+						if (mode === "installed" && !installed[gameId])
+							continue;
+						if (mode === "recent" && !(game.playtime_2weeks > 0))
+							continue;
+						add(gameId, game.name);
+					}
+
+					// Outliers: installed, but not in the list Steam calls owned (demos, betas, free-to-play never launched, ...).
+					if (includeOutliers)
+					{
+						for (var k = 0; k < installedOrder.length; k++)
+						{
+							var id = installedOrder[k];
+							if (ownedIds[id])
+								continue;
+							if (mode === "recent" && installed[id].lastPlayed < cutoff)
+								continue;
+							add(id, installed[id].name);
+						}
+					}
+				}
+				else
+				{
+					// Installed Games with no owned list (offline, private profile, relay down): every installed app.
+					for (var m = 0; m < installedOrder.length; m++)
+						add(installedOrder[m], installed[installedOrder[m]].name);
+				}
+
+				if (flat.length === 0)
+				{
+					setDetectStatus("No games found for that choice.");
+					setDetectButtonsEnabled(true);
+					return;
+				}
+
+				setDetectStatus("Found " + (flat.length / 2) + " games. Adding the new ones to your library...");
+				if (aaapi.cmdEx("importSteamGames", flat))
+					window.location = "asset://ui/importSteamGamesProgress.html";
+				else
+				{
+					setDetectStatus("Could not start the import.");
+					setDetectButtonsEnabled(true);
+				}
+			};
 		</script>
 
 		</div>
